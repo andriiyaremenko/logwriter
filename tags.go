@@ -14,26 +14,32 @@ type key int
 
 var logwriterKey key
 
+// Addends Tag to context, that will be logged with Debug level
 func AppendDebug(ctx context.Context, tag string, value interface{}) context.Context {
-	return AppendTag(ctx, levelDebug, tag, value)
+	return AppendTag(ctx, LevelDebug, tag, value)
 }
 
+// Addends Tag to context, that will be logged with Info level
 func AppendInfo(ctx context.Context, tag string, value interface{}) context.Context {
-	return AppendTag(ctx, levelInfo, tag, value)
+	return AppendTag(ctx, LevelInfo, tag, value)
 }
 
+// Addends Tag to context, that will be logged with Warn level
 func AppendWarn(ctx context.Context, tag string, value interface{}) context.Context {
-	return AppendTag(ctx, levelWarn, tag, value)
+	return AppendTag(ctx, LevelWarn, tag, value)
 }
 
+// Addends Tag to context, that will be logged with Error level
 func AppendError(ctx context.Context, tag string, value interface{}) context.Context {
-	return AppendTag(ctx, levelError, tag, value)
+	return AppendTag(ctx, LevelError, tag, value)
 }
 
+// Addends Tag to context, that will be logged with Fatal level
 func AppendFatal(ctx context.Context, tag string, value interface{}) context.Context {
-	return AppendTag(ctx, levelFatal, tag, value)
+	return AppendTag(ctx, LevelFatal, tag, value)
 }
 
+// Addends Tag to context, that will be logged with provided level
 func AppendTag(ctx context.Context, level int, tag string, value interface{}) context.Context {
 	newTag := Tag{
 		Key:   tag,

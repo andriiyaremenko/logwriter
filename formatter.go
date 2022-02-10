@@ -6,18 +6,26 @@ import (
 	"fmt"
 	"strings"
 	"text/tabwriter"
-	"time"
 
 	"github.com/andriiyaremenko/logwriter/color"
 )
 
-type Formatter func(*Log) []byte
+// Date layout to exclude logw time-stamp from log
+const NoDate = "NO_DATE"
 
-func JSONFormatter(log *Log) []byte {
+// Log message formatter
+type Formatter func(log *Log, dateLayout string) []byte
+
+// JSON message formatter.
+// Has format of:
+//  { "date": string|optional, "level":string, "levelCode":int, "message":string }
+func JSONFormatter(log *Log, dateLayout string) []byte {
 	jsonLog := make(map[string]interface{})
 	jsonLog["levelCode"] = log.LevelCode
 	jsonLog["level"] = log.Level
-	jsonLog["date"] = log.Date.UTC().Format(time.RFC3339)
+	if dateLayout != NoDate {
+		jsonLog["date"] = log.Date.UTC().Format(dateLayout)
+	}
 	jsonLog["message"] = log.Message
 
 	tags := make(map[string][]interface{})
@@ -39,7 +47,10 @@ func JSONFormatter(log *Log) []byte {
 	return append(b, '\n')
 }
 
-func TextFormatter(log *Log) []byte {
+// Text message formatter.
+// Has format of:
+//  level  ?time-stamp  tag-key:tag-value  message
+func TextFormatter(log *Log, dateTemplate string) []byte {
 	var sb strings.Builder
 	levelColor := color.GetLevelColor(log.LevelCode)
 	adjust := func(s string) string {
@@ -52,8 +63,11 @@ func TextFormatter(log *Log) []byte {
 
 	sb.WriteString(color.ColorizeText(levelColor, adjust(log.Level)))
 	sb.WriteString("\t")
-	sb.WriteString(color.ColorizeText(color.ANSIColorGray, log.Date.Format(time.RFC3339)))
-	sb.WriteString("\t")
+
+	if dateTemplate != NoDate {
+		sb.WriteString(color.ColorizeText(color.ANSIColorGray, log.Date.Format(dateTemplate)))
+		sb.WriteString("\t")
+	}
 
 	for _, tag := range log.Tags {
 		sb.WriteString(tag.Key)

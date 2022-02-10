@@ -8,11 +8,16 @@ import (
 
 const (
 	_ int = iota
-	levelDebug
-	levelInfo
-	levelWarn
-	levelError
-	levelFatal
+	// Debug level code
+	LevelDebug
+	// Info level code
+	LevelInfo
+	// Warn level code
+	LevelWarn
+	// Error level code
+	LevelError
+	// Fatal level code
+	LevelFatal
 )
 
 var (
@@ -23,7 +28,7 @@ var (
 func parseLog(m []byte) (int, []byte, []Tag) {
 	tags := []Tag{}
 	if !regexLevel.Match(m) && !regexTags.Match(m) {
-		return levelInfo, m, tags
+		return LevelInfo, m, tags
 	}
 
 	levelMatch := regexLevel.FindSubmatch(m)
@@ -35,7 +40,7 @@ func parseLog(m []byte) (int, []byte, []Tag) {
 
 	level, err := strconv.Atoi(string(levelMatch[levelIndex]))
 	if err != nil {
-		level = levelInfo
+		level = LevelInfo
 	}
 
 	tagsMatch := regexTags.FindAllSubmatch(m, -1)
@@ -75,17 +80,17 @@ func parseLog(m []byte) (int, []byte, []Tag) {
 
 func getLevelText(level int) string {
 	switch level {
-	case levelDebug:
+	case LevelDebug:
 		return "debug"
-	case levelInfo:
+	case LevelInfo:
 		return "info"
-	case levelWarn:
+	case LevelWarn:
 		return "warn"
-	case levelError:
+	case LevelError:
 		return "error"
 	}
 
-	if level < levelDebug {
+	if level < LevelDebug {
 		return "trace"
 	}
 

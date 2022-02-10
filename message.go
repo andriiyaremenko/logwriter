@@ -18,19 +18,27 @@ level `
 )
 
 var (
-	Debug Message = Level(levelDebug)
-	Info  Message = Level(levelInfo)
-	Warn  Message = Level(levelWarn)
-	Error Message = Level(levelError)
-	Fatal Message = Level(levelFatal)
+	// Sets Debug message level
+	Debug Message = Level(LevelDebug)
+	// Sets Info message level
+	Info Message = Level(LevelInfo)
+	// Sets Warn message level
+	Warn Message = Level(LevelWarn)
+	// Sets Error message level
+	Error Message = Level(LevelError)
+	// Sets Fatal message level
+	Fatal Message = Level(LevelFatal)
 )
 
+// Sets message level
 func Level(level int) Message {
 	return Message(fmt.Sprintf(levelSection+"%d"+closingSection, level))
 }
 
+// Allows in-place tags
 type Message string
 
+// Adds in-place tag with string value
 func (t Message) WithString(tag string, value string) Message {
 	return Message(
 		fmt.Sprintf(
@@ -42,6 +50,7 @@ func (t Message) WithString(tag string, value string) Message {
 	)
 }
 
+// Adds in-place tag with int value
 func (t Message) WithInt(tag string, value int) Message {
 	return Message(
 		fmt.Sprintf(
@@ -53,6 +62,7 @@ func (t Message) WithInt(tag string, value int) Message {
 	)
 }
 
+// Adds in-place tag with float value
 func (t Message) WithFloat(tag string, value float64) Message {
 	return Message(
 		fmt.Sprintf(
@@ -64,6 +74,7 @@ func (t Message) WithFloat(tag string, value float64) Message {
 	)
 }
 
+// Adds in-place tag with bool value
 func (t Message) WithBool(tag string, value bool) Message {
 	return Message(
 		fmt.Sprintf(
@@ -75,12 +86,14 @@ func (t Message) WithBool(tag string, value bool) Message {
 	)
 }
 
+// Adds in-place trace tag with file name and row number
+// Tag key: "trace"
 func (t Message) WithRowNumber() Message {
 	value := getFileAndLine(1)
 	return Message(
 		fmt.Sprintf(
 			string(t)+tagSection+"%s %T %s"+closingSection,
-			"rownumber",
+			"trace",
 			value,
 			value,
 		),

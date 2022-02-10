@@ -122,7 +122,7 @@ func (s *logWriterSuite) TestJSONLogWriter() {
 					{Key: "foo", Value: true, Level: 2},
 					{Key: "bar", Value: 1, Level: 2},
 					{Key: "baz", Value: "test", Level: 2},
-					{Key: "rownumber", Value: "[logwriter_test.go 137]", Level: 2},
+					{Key: "trace", Value: "[logwriter_test.go 137]", Level: 2},
 				},
 				result.Tags,
 			)
@@ -140,10 +140,13 @@ func (s *logWriterSuite) TestJSONLogWriter() {
 	})
 }
 
-func (s *logWriterSuite) getTestFormatter(test func(*logw.Log)) logw.Formatter {
-	return func(log *logw.Log) []byte {
-		test(log)
+func (s *logWriterSuite) getTestFormatter(test func(*logw.Log)) logw.LogWriterOption {
+	return logw.Option(2,
+		func(log *logw.Log, dateF string) []byte {
+			test(log)
 
-		return logw.TextFormatter(log)
-	}
+			return logw.TextFormatter(log, dateF)
+		},
+		logw.NoDate,
+	)
 }
