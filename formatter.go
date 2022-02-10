@@ -1,8 +1,11 @@
 package logw
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"text/tabwriter"
 	"time"
 
 	"github.com/andriiyaremenko/logwriter/color"
@@ -34,4 +37,41 @@ func JSONFormatter(log *Log) []byte {
 	}
 
 	return append(b, '\n')
+}
+
+func TextFormatter(log *Log) []byte {
+	var sb strings.Builder
+	levelColor := color.GetLevelColor(log.LevelCode)
+	adjust := func(s string) string {
+		if s == "info" || s == "warn" {
+			return " " + s
+		}
+
+		return s
+	}
+
+	sb.WriteString(color.ColorizeText(levelColor, adjust(log.Level)))
+	sb.WriteString("\t")
+	sb.WriteString(color.ColorizeText(color.ANSIColorGray, log.Date.Format(time.RFC3339)))
+	sb.WriteString("\t")
+
+	for _, tag := range log.Tags {
+		sb.WriteString(tag.Key)
+		sb.WriteString(":")
+		sb.WriteString(fmt.Sprintf("%v", tag.Value))
+
+		sb.WriteString("\t")
+	}
+
+	sb.WriteString(strings.TrimRight(log.Message, "\n"))
+	sb.WriteString("\n")
+
+	message := sb.String()
+	buf := new(bytes.Buffer)
+	w := tabwriter.NewWriter(buf, 0, 2, 2, ' ', 0)
+
+	fmt.Fprint(w, message)
+	w.Flush()
+
+	return buf.Bytes()
 }

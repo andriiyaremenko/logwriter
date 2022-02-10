@@ -104,5 +104,5 @@ func getFileAndLine(calldepth int) string {
 		}
 	}
 
-	return fmt.Sprintf("%s: %d", short, line)
+	return fmt.Sprintf("[%s %d]", short, line)
 }

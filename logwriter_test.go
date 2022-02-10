@@ -31,7 +31,6 @@ func (s *logWriterSuite) TestJSONLogWriter() {
 
 		s.log.SetOutput(logw.LogWriter(context.TODO(), b, s.getTestFormatter(test)))
 		s.log.Println("test")
-
 	})
 
 	s.Run("with_level_no_tags", func() {
@@ -123,7 +122,7 @@ func (s *logWriterSuite) TestJSONLogWriter() {
 					{Key: "foo", Value: true, Level: 2},
 					{Key: "bar", Value: 1, Level: 2},
 					{Key: "baz", Value: "test", Level: 2},
-					{Key: "rownumber", Value: "logwriter_test.go: 138", Level: 2},
+					{Key: "rownumber", Value: "[logwriter_test.go 137]", Level: 2},
 				},
 				result.Tags,
 			)
@@ -145,6 +144,6 @@ func (s *logWriterSuite) getTestFormatter(test func(*logw.Log)) logw.Formatter {
 	return func(log *logw.Log) []byte {
 		test(log)
 
-		return logw.JSONFormatter(log)
+		return logw.TextFormatter(log)
 	}
 }
