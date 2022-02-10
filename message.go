@@ -100,6 +100,11 @@ func (t Message) WithRowNumber() Message {
 	)
 }
 
+// Appends log message
+func (t Message) WithMessage(template string, v ...interface{}) string {
+	return string(t) + fmt.Sprintf(template, v...)
+}
+
 func getFileAndLine(calldepth int) string {
 	_, file, line, ok := runtime.Caller(calldepth + 1)
 

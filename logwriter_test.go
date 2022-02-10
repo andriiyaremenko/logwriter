@@ -138,6 +138,19 @@ func (s *logWriterSuite) TestJSONLogWriter() {
 			"test",
 		)
 	})
+
+	s.Run("with_message", func() {
+		b := new(bytes.Buffer)
+		ctx := context.TODO()
+		test := func(result *logw.Log) {
+			s.Equal(2, result.LevelCode)
+			s.Equal("info", result.Level)
+			s.Equal("Hello World", result.Message)
+		}
+
+		s.log.SetOutput(logw.LogWriter(ctx, b, s.getTestFormatter(test)))
+		s.log.Println(logw.Info.WithMessage("Hello %s", "World"))
+	})
 }
 
 func (s *logWriterSuite) getTestFormatter(test func(*logw.Log)) logw.LogWriterOption {

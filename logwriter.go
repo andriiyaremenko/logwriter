@@ -15,6 +15,10 @@ var (
 	Option = func(level int, f Formatter, dateFormat string) LogWriterOption {
 		return func() (int, Formatter, string) { return level, f, dateFormat }
 	}
+	// Without time-stamp option
+	NoTimeStampOption = func(level int, f Formatter) LogWriterOption {
+		return Option(level, f, NoDate)
+	}
 
 	// Default JSON LogWriter configuration
 	JSONOption LogWriterOption = Option(LevelInfo, JSONFormatter, time.RFC3339)
