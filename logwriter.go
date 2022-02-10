@@ -11,6 +11,10 @@ func JSONLogWriter(ctx context.Context, w io.Writer) io.Writer {
 	return LogWriter(ctx, w, JSONFormatter)
 }
 
+func TextLogWriter(ctx context.Context, w io.Writer) io.Writer {
+	return LogWriter(ctx, w, TextFormatter)
+}
+
 func LogWriter(ctx context.Context, w io.Writer, formatter Formatter) io.Writer {
 	return &logWriter{ctx: ctx, w: w, formatter: formatter}
 }
