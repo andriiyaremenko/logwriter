@@ -1,6 +1,6 @@
 // This package provides simple structured logging.
-// logw.LogWriter(...) returns io.Writer that can be consumed most of the existing loggers.
-// It will transform input accouding to logw.Formatter you choose.
+// logw.LogWriter(...) returns io.Writer that most of the existing loggers can consume.
+// It will transform input according to logw.Formatter you choose.
 // You can control log level by using provided logw.Debug|Info|Wran|Error|Fatal variables like this:
 // 	log.Println(logw.Error, "your message")
 // or like this:
@@ -23,5 +23,5 @@
 // 		// will output:
 // 		//  {"date":"20**-**-**T**:**:**Z","level":"info","levelCode":2,"message":"starting work: important work"}
 // 		//  {"date":"20**-**-**T**:**:**Z","level":"warn","levelCode":3,"message":"is done","work":["important work"]}
-// }
+// 	}
 package logw
