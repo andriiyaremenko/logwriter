@@ -16,7 +16,7 @@ const NoDate = "NO_DATE"
 // Log message formatter
 type Formatter func(log *Log, dateLayout string) []byte
 
-// JSON message formatter.
+// JSON message formatter
 // Has format of:
 //  { "date": string|optional, "level":string, "levelCode":int, "message":string }
 func JSONFormatter(log *Log, dateLayout string) []byte {
@@ -47,7 +47,7 @@ func JSONFormatter(log *Log, dateLayout string) []byte {
 	return append(b, '\n')
 }
 
-// Text message formatter.
+// Text message formatter
 // Has format of:
 //  level  ?time-stamp  tag-key:tag-value  message
 func TextFormatter(log *Log, dateTemplate string) []byte {

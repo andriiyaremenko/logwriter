@@ -19,28 +19,29 @@ level `
 
 var (
 	// Sets Debug message level
-	Debug Message = Level(LevelDebug)
+	Debug LogLevel = Level(LevelDebug)
 	// Sets Info message level
-	Info Message = Level(LevelInfo)
+	Info LogLevel = Level(LevelInfo)
 	// Sets Warn message level
-	Warn Message = Level(LevelWarn)
+	Warn LogLevel = Level(LevelWarn)
 	// Sets Error message level
-	Error Message = Level(LevelError)
+	Error LogLevel = Level(LevelError)
 	// Sets Fatal message level
-	Fatal Message = Level(LevelFatal)
+	Fatal LogLevel = Level(LevelFatal)
 )
 
 // Sets message level
-func Level(level int) Message {
-	return Message(fmt.Sprintf(levelSection+"%d"+closingSection, level))
+func Level(level int) LogLevel {
+	return LogLevel(fmt.Sprintf(levelSection+"%d"+closingSection, level))
 }
 
+// Message log level
 // Allows in-place tags
-type Message string
+type LogLevel string
 
 // Adds in-place tag with string value
-func (t Message) WithString(tag string, value string) Message {
-	return Message(
+func (t LogLevel) WithString(tag string, value string) LogLevel {
+	return LogLevel(
 		fmt.Sprintf(
 			string(t)+tagSection+"%s %T %s"+closingSection,
 			tag,
@@ -51,8 +52,8 @@ func (t Message) WithString(tag string, value string) Message {
 }
 
 // Adds in-place tag with int value
-func (t Message) WithInt(tag string, value int) Message {
-	return Message(
+func (t LogLevel) WithInt(tag string, value int) LogLevel {
+	return LogLevel(
 		fmt.Sprintf(
 			string(t)+tagSection+"%s %T %d"+closingSection,
 			tag,
@@ -63,8 +64,8 @@ func (t Message) WithInt(tag string, value int) Message {
 }
 
 // Adds in-place tag with float value
-func (t Message) WithFloat(tag string, value float64) Message {
-	return Message(
+func (t LogLevel) WithFloat(tag string, value float64) LogLevel {
+	return LogLevel(
 		fmt.Sprintf(
 			string(t)+tagSection+"%s %T %f"+closingSection,
 			tag,
@@ -75,8 +76,8 @@ func (t Message) WithFloat(tag string, value float64) Message {
 }
 
 // Adds in-place tag with bool value
-func (t Message) WithBool(tag string, value bool) Message {
-	return Message(
+func (t LogLevel) WithBool(tag string, value bool) LogLevel {
+	return LogLevel(
 		fmt.Sprintf(
 			string(t)+tagSection+"%s %T %t"+closingSection,
 			tag,
@@ -88,9 +89,9 @@ func (t Message) WithBool(tag string, value bool) Message {
 
 // Adds in-place trace tag with file name and row number
 // Tag key: "trace"
-func (t Message) WithRowNumber() Message {
+func (t LogLevel) WithRowNumber() LogLevel {
 	value := getFileAndLine(1)
-	return Message(
+	return LogLevel(
 		fmt.Sprintf(
 			string(t)+tagSection+"%s %T %s"+closingSection,
 			"trace",
@@ -101,7 +102,7 @@ func (t Message) WithRowNumber() Message {
 }
 
 // Appends log message
-func (t Message) WithMessage(template string, v ...interface{}) string {
+func (t LogLevel) WithMessage(template string, v ...interface{}) string {
 	return string(t) + fmt.Sprintf(template, v...)
 }
 

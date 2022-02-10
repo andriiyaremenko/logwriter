@@ -26,12 +26,12 @@ const (
 
 var ansiiColorMatch = regexp.MustCompile("\u001B\\[[;\\d]*m")
 
-// Returns text prepended by ANSI color code and appended by ANSI color reset code.
+// Returns text prepended by ANSI color code and appended by ANSI color reset code
 func ColorizeText(color Color, text string) string {
 	return string(color) + text + string(ANSIReset)
 }
 
-// Returns text without color.
+// Returns text without color
 func ClearColors(text string) string {
 	return ansiiColorMatch.ReplaceAllString(text, "")
 }
