@@ -20,7 +20,7 @@ type logWriterSuite struct {
 	log log.Logger
 }
 
-func (s *logWriterSuite) TestJSONLogWriter() {
+func (s *logWriterSuite) TestLogWriter() {
 	s.Run("no_level_no_tags", func() {
 		b := new(bytes.Buffer)
 		test := func(result *logw.Log) {
