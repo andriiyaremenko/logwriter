@@ -120,9 +120,10 @@ func (s *logWriterSuite) TestLogWriter() {
 			s.ElementsMatch(
 				[]logw.Tag{
 					{Key: "foo", Value: true, Level: 2},
-					{Key: "bar", Value: 1, Level: 2},
+					{Key: "bar", Value: -1, Level: 2},
+					{Key: "float", Value: -1.2, Level: 2},
 					{Key: "baz", Value: "test", Level: 2},
-					{Key: "trace", Value: "[logwriter_test.go 137]", Level: 2},
+					{Key: "trace", Value: "[logwriter_test.go 139]", Level: 2},
 				},
 				result.Tags,
 			)
@@ -132,7 +133,8 @@ func (s *logWriterSuite) TestLogWriter() {
 		s.log.Println(
 			logw.Info.
 				WithBool("foo", true).
-				WithInt("bar", 1).
+				WithInt("bar", -1).
+				WithFloat("float", -1.2).
 				WithString("baz", "test").
 				WithRowNumber(),
 			"test",

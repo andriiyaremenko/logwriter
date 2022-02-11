@@ -3,18 +3,27 @@ package logw
 import (
 	"fmt"
 	"runtime"
+	"strings"
 )
 
 const (
-	closingSection = `
--------------------------------------------------------------------------------------
-`
-	levelSection string = `
------------------------------------logwriter-level-----------------------------------
-level `
-	tagSection string = `
------------------------------------logwriter--tags-----------------------------------
-`
+	_ int = iota
+	// Debug level code
+	LevelDebug
+	// Info level code
+	LevelInfo
+	// Warn level code
+	LevelWarn
+	// Error level code
+	LevelError
+	// Fatal level code
+	LevelFatal
+)
+
+const (
+	closingSection string = "\n-logw-e-\n"
+	levelSection   string = "\n-logw-l-\nlevel"
+	tagSection     string = "\n-logw-t-\n"
 )
 
 var (
@@ -42,68 +51,64 @@ type LogLevel string
 // Adds in-place tag with string value
 func (t LogLevel) WithString(tag string, value string) LogLevel {
 	return LogLevel(
-		fmt.Sprintf(
-			string(t)+tagSection+"%s %T %s"+closingSection,
-			tag,
-			value,
-			value,
-		),
+		strings.Join(
+			[]string{
+				string(t),
+				tagSection,
+				fmt.Sprintf("%s %T %s", tag, value, value),
+				closingSection,
+			}, ""),
 	)
 }
 
 // Adds in-place tag with int value
 func (t LogLevel) WithInt(tag string, value int) LogLevel {
 	return LogLevel(
-		fmt.Sprintf(
-			string(t)+tagSection+"%s %T %d"+closingSection,
-			tag,
-			value,
-			value,
-		),
+		strings.Join(
+			[]string{
+				string(t),
+				tagSection,
+				fmt.Sprintf("%s %T %d", tag, value, value),
+				closingSection,
+			}, ""),
 	)
 }
 
 // Adds in-place tag with float value
 func (t LogLevel) WithFloat(tag string, value float64) LogLevel {
 	return LogLevel(
-		fmt.Sprintf(
-			string(t)+tagSection+"%s %T %f"+closingSection,
-			tag,
-			value,
-			value,
-		),
+		strings.Join(
+			[]string{
+				string(t),
+				tagSection,
+				fmt.Sprintf("%s %T %f", tag, value, value),
+				closingSection,
+			}, ""),
 	)
 }
 
 // Adds in-place tag with bool value
 func (t LogLevel) WithBool(tag string, value bool) LogLevel {
 	return LogLevel(
-		fmt.Sprintf(
-			string(t)+tagSection+"%s %T %t"+closingSection,
-			tag,
-			value,
-			value,
-		),
+		strings.Join(
+			[]string{
+				string(t),
+				tagSection,
+				fmt.Sprintf("%s %T %t", tag, value, value),
+				closingSection,
+			}, ""),
 	)
 }
 
 // Adds in-place trace tag with file name and row number
 // Tag key: "trace"
 func (t LogLevel) WithRowNumber() LogLevel {
-	value := getFileAndLine(1)
-	return LogLevel(
-		fmt.Sprintf(
-			string(t)+tagSection+"%s %T %s"+closingSection,
-			"trace",
-			value,
-			value,
-		),
-	)
+	return t.WithString("trace", getFileAndLine(1))
 }
 
 // Appends log message
 func (t LogLevel) WithMessage(template string, v ...interface{}) string {
-	return string(t) + fmt.Sprintf(template, v...)
+	return strings.Join([]string{string(t), fmt.Sprintf(template, v...)}, "")
 }
 
 func getFileAndLine(calldepth int) string {

@@ -6,23 +6,13 @@ import (
 	"strconv"
 )
 
-const (
-	_ int = iota
-	// Debug level code
-	LevelDebug
-	// Info level code
-	LevelInfo
-	// Warn level code
-	LevelWarn
-	// Error level code
-	LevelError
-	// Fatal level code
-	LevelFatal
-)
-
 var (
 	regexLevel = regexp.MustCompile(levelSection + `(?P<level>\d+)` + closingSection)
-	regexTags  = regexp.MustCompile(tagSection + `(\w+) (string|int|float64|bool) (.+)` + closingSection)
+	regexTags  = regexp.MustCompile(
+		tagSection +
+			`(\w+) (string|int|float64|bool) (\d+|true|false|.+)` +
+			closingSection,
+	)
 )
 
 func parseLog(m []byte) (int, []byte, []Tag) {
@@ -35,15 +25,21 @@ func parseLog(m []byte) (int, []byte, []Tag) {
 	levelIndex := regexLevel.SubexpIndex("level")
 
 	message := regexLevel.ReplaceAll(m, []byte{})
-	message = regexTags.ReplaceAll(message, []byte{})
-	message = bytes.TrimLeft(message, " ")
 
 	level, err := strconv.Atoi(string(levelMatch[levelIndex]))
 	if err != nil {
 		level = LevelInfo
 	}
 
-	tagsMatch := regexTags.FindAllSubmatch(m, -1)
+	if !regexTags.Match(m) {
+		message = bytes.TrimLeft(message, " ")
+
+		return level, message, tags
+	}
+
+	tagsMatch := regexTags.FindAllSubmatch(message, -1)
+	message = regexTags.ReplaceAll(message, []byte{})
+	message = bytes.TrimLeft(message, " ")
 
 	for i := range tagsMatch {
 		var value interface{}
@@ -75,6 +71,7 @@ func parseLog(m []byte) (int, []byte, []Tag) {
 			Level: level,
 		})
 	}
+
 	return level, message, tags
 }
 
