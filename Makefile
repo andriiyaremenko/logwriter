@@ -1,3 +1,4 @@
+GO ?= go
 BENCH_COUNT ?= 5
 REF_NAME ?= $(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null)
 
