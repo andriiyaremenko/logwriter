@@ -22,7 +22,7 @@ const (
 
 const (
 	closingSection string = "\n-logw-e-\n"
-	levelSection   string = "\n-logw-l-\nlevel"
+	levelSection   string = "\n-logw-l-\n"
 	tagSection     string = "\n-logw-t-\n"
 )
 

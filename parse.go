@@ -9,9 +9,7 @@ import (
 var (
 	regexLevel = regexp.MustCompile(levelSection + `(?P<level>\d+)` + closingSection)
 	regexTags  = regexp.MustCompile(
-		tagSection +
-			`(\w+) (string|int|float64|bool) (\d+|true|false|.+)` +
-			closingSection,
+		tagSection + `(\w+) (string|int|float64|bool) (true|false|\d+|.+)` + closingSection,
 	)
 )
 
