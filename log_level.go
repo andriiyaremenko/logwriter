@@ -21,9 +21,9 @@ const (
 )
 
 const (
-	closingSection string = "\n-logw-e-\n"
-	levelSection   string = "\n-logw-l-\n"
-	tagSection     string = "\n-logw-t-\n"
+	closingSectionHeader string = "-logw-e-\n"
+	levelSectionHeader   string = "-logw-l-\n"
+	tagSectionHeader     string = "-logw-t-\n"
 )
 
 var (
@@ -39,9 +39,17 @@ var (
 	Fatal LogLevel = Level(LevelFatal)
 )
 
+var tagHeaderLen int = len(tagSectionHeader)
+
 // Sets message level
 func Level(level int) LogLevel {
-	return LogLevel(fmt.Sprintf(levelSection+"%d"+closingSection, level))
+	return LogLevel(strings.Join(
+		[]string{
+			tagSectionHeader,
+			closingSectionHeader,
+			fmt.Sprintf(levelSectionHeader+"%d"+closingSectionHeader, level),
+		}, "",
+	))
 }
 
 // Message log level
@@ -50,54 +58,22 @@ type LogLevel string
 
 // Adds in-place tag with string value
 func (t LogLevel) WithString(tag string, value string) LogLevel {
-	return LogLevel(
-		strings.Join(
-			[]string{
-				string(t),
-				tagSection,
-				fmt.Sprintf("%s %T %s", tag, value, value),
-				closingSection,
-			}, ""),
-	)
+	return t.appendTag(fmt.Sprintf("%s\t%T\t%s", tag, value, value))
 }
 
 // Adds in-place tag with int value
 func (t LogLevel) WithInt(tag string, value int) LogLevel {
-	return LogLevel(
-		strings.Join(
-			[]string{
-				string(t),
-				tagSection,
-				fmt.Sprintf("%s %T %d", tag, value, value),
-				closingSection,
-			}, ""),
-	)
+	return t.appendTag(fmt.Sprintf("%s\t%T\t%d", tag, value, value))
 }
 
 // Adds in-place tag with float value
 func (t LogLevel) WithFloat(tag string, value float64) LogLevel {
-	return LogLevel(
-		strings.Join(
-			[]string{
-				string(t),
-				tagSection,
-				fmt.Sprintf("%s %T %f", tag, value, value),
-				closingSection,
-			}, ""),
-	)
+	return t.appendTag(fmt.Sprintf("%s\t%T\t%f", tag, value, value))
 }
 
 // Adds in-place tag with bool value
 func (t LogLevel) WithBool(tag string, value bool) LogLevel {
-	return LogLevel(
-		strings.Join(
-			[]string{
-				string(t),
-				tagSection,
-				fmt.Sprintf("%s %T %t", tag, value, value),
-				closingSection,
-			}, ""),
-	)
+	return t.appendTag(fmt.Sprintf("%s\t%T\t%t", tag, value, value))
 }
 
 // Adds in-place trace tag with file name and row number
@@ -109,6 +85,14 @@ func (t LogLevel) WithRowNumber() LogLevel {
 // Appends log message
 func (t LogLevel) WithMessage(template string, v ...interface{}) string {
 	return strings.Join([]string{string(t), fmt.Sprintf(template, v...)}, "")
+}
+
+func (t LogLevel) appendTag(tagSection string) LogLevel {
+	return LogLevel(
+		strings.Join(
+			[]string{string(t[:tagHeaderLen]), tagSection, "\n", string(t[tagHeaderLen:])}, "",
+		),
+	)
 }
 
 func getFileAndLine(calldepth int) string {

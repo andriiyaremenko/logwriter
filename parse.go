@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var (
-	regexLevel = regexp.MustCompile(levelSection + `(?P<level>\d+)` + closingSection)
+	regexLevel = regexp.MustCompile(levelSectionHeader + `(?P<level>\d+)` + closingSectionHeader)
 	regexTags  = regexp.MustCompile(
-		tagSection + `(\w+) (string|int|float64|bool) (true|false|\d+|.+)` + closingSection,
+		tagSectionHeader + `(?P<tags>(.|\n)*)` + closingSectionHeader,
 	)
 )
 
@@ -23,48 +24,52 @@ func parseLog(m []byte) (int, []byte, []Tag) {
 	levelIndex := regexLevel.SubexpIndex("level")
 
 	message := regexLevel.ReplaceAll(m, []byte{})
+	message = regexTags.ReplaceAll(message, []byte{})
+	message = bytes.TrimLeft(message, " ")
 
 	level, err := strconv.Atoi(string(levelMatch[levelIndex]))
 	if err != nil {
 		level = LevelInfo
 	}
 
-	if !regexTags.Match(m) {
-		message = bytes.TrimLeft(message, " ")
+	tagsMatch := regexTags.FindSubmatch(m)
+	tagsIndex := regexTags.SubexpIndex("tags")
 
+	if tagsIndex < 0 {
 		return level, message, tags
 	}
 
-	tagsMatch := regexTags.FindAllSubmatch(message, -1)
-	message = regexTags.ReplaceAll(message, []byte{})
-	message = bytes.TrimLeft(message, " ")
+	for _, row := range strings.Split(string(tagsMatch[tagsIndex]), "\n") {
+		tagSection := strings.SplitN(row, "\t", 3)
+		if len(tagSection) != 3 {
+			continue
+		}
 
-	for i := range tagsMatch {
 		var value interface{}
-		switch string(tagsMatch[i][2]) {
+		switch tagSection[1] {
 		case "string":
-			value = string(tagsMatch[i][3])
+			value = string(tagSection[2])
 		case "bool":
-			value, err = strconv.ParseBool(string(tagsMatch[i][3]))
+			value, err = strconv.ParseBool(string(tagSection[2]))
 			if err != nil {
-				value = tagsMatch[i][3]
+				value = tagSection[2]
 			}
 		case "int":
-			value, err = strconv.Atoi(string(tagsMatch[i][3]))
+			value, err = strconv.Atoi(string(tagSection[2]))
 			if err != nil {
-				value = tagsMatch[i][3]
+				value = tagSection[2]
 			}
 		case "float64":
-			value, err = strconv.ParseFloat(string(tagsMatch[i][3]), 64)
+			value, err = strconv.ParseFloat(string(tagSection[2]), 64)
 			if err != nil {
-				value = tagsMatch[i][3]
+				value = tagSection[2]
 			}
 		default:
-			value = tagsMatch[i][3]
+			value = tagSection[2]
 		}
 
 		tags = append(tags, Tag{
-			Key:   string(tagsMatch[i][1]),
+			Key:   tagSection[0],
 			Value: value,
 			Level: level,
 		})
