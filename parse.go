@@ -1,76 +1,72 @@
 package logw
 
 import (
-	"bytes"
-	"regexp"
 	"strconv"
-)
-
-var (
-	regexLevel = regexp.MustCompile(levelSection + `(?P<level>\d+)` + closingSection)
-	regexTags  = regexp.MustCompile(
-		tagSection + `(\w+) (string|int|float64|bool) (true|false|\d+|.+)` + closingSection,
-	)
+	"strings"
 )
 
 func parseLog(m []byte) (int, []byte, []Tag) {
 	tags := []Tag{}
-	if !regexLevel.Match(m) && !regexTags.Match(m) {
-		return LevelInfo, m, tags
+	level := LevelInfo
+
+	sections := strings.SplitN(string(m), logwHeader, 3)
+
+	if len(sections) != 3 {
+		return level, m, tags
 	}
 
-	levelMatch := regexLevel.FindSubmatch(m)
-	levelIndex := regexLevel.SubexpIndex("level")
+	message := sections[2]
+	message = strings.TrimLeft(message, " ")
 
-	message := regexLevel.ReplaceAll(m, []byte{})
+	for _, row := range strings.Split(sections[1], "\n") {
+		tagSection := strings.SplitN(row, "\t", 3)
+		if len(tagSection) != 3 {
+			continue
+		}
 
-	level, err := strconv.Atoi(string(levelMatch[levelIndex]))
-	if err != nil {
-		level = LevelInfo
-	}
-
-	if !regexTags.Match(m) {
-		message = bytes.TrimLeft(message, " ")
-
-		return level, message, tags
-	}
-
-	tagsMatch := regexTags.FindAllSubmatch(message, -1)
-	message = regexTags.ReplaceAll(message, []byte{})
-	message = bytes.TrimLeft(message, " ")
-
-	for i := range tagsMatch {
+		var err error
 		var value interface{}
-		switch string(tagsMatch[i][2]) {
+
+		switch tagSection[1] {
 		case "string":
-			value = string(tagsMatch[i][3])
+			value = string(tagSection[2])
 		case "bool":
-			value, err = strconv.ParseBool(string(tagsMatch[i][3]))
+			value, err = strconv.ParseBool(string(tagSection[2]))
 			if err != nil {
-				value = tagsMatch[i][3]
+				value = tagSection[2]
 			}
 		case "int":
-			value, err = strconv.Atoi(string(tagsMatch[i][3]))
+			value, err = strconv.Atoi(string(tagSection[2]))
 			if err != nil {
-				value = tagsMatch[i][3]
+				value = tagSection[2]
 			}
 		case "float64":
-			value, err = strconv.ParseFloat(string(tagsMatch[i][3]), 64)
+			value, err = strconv.ParseFloat(string(tagSection[2]), 64)
 			if err != nil {
-				value = tagsMatch[i][3]
+				value = tagSection[2]
 			}
+		case "level":
+			level, err = strconv.Atoi(string(tagSection[2]))
+			if err != nil {
+				level = LevelInfo
+			}
+			continue
 		default:
-			value = tagsMatch[i][3]
+			value = tagSection[2]
 		}
 
 		tags = append(tags, Tag{
-			Key:   string(tagsMatch[i][1]),
+			Key:   tagSection[0],
 			Value: value,
-			Level: level,
 		})
 	}
 
-	return level, message, tags
+	for i, tag := range tags {
+		tag.Level = level
+		tags[i] = tag
+	}
+
+	return level, []byte(message), tags
 }
 
 func getLevelText(level int) string {
