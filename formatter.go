@@ -69,10 +69,15 @@ func TextFormatter(log *Log, dateTemplate string) []byte {
 		sb.WriteString("\t")
 	}
 
+	tags := make(map[string][]interface{})
 	for _, tag := range log.Tags {
-		sb.WriteString(tag.Key)
+		tags[tag.Key] = append(tags[tag.Key], tag.Value)
+	}
+
+	for k, v := range tags {
+		sb.WriteString(k)
 		sb.WriteString(":")
-		sb.WriteString(fmt.Sprintf("%v", tag.Value))
+		sb.WriteString(fmt.Sprintf("%v", v))
 
 		sb.WriteString("\t")
 	}
