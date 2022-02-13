@@ -13,7 +13,7 @@ func (w w) Write(b []byte) (int, error) {
 	return 0, nil
 }
 
-func BenchmarkLogWithLogWriterJSON(b *testing.B) {
+func BenchmarkLogWriterJSON(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.JSONLogWriter(ctx, w{})
 
@@ -24,7 +24,7 @@ func BenchmarkLogWithLogWriterJSON(b *testing.B) {
 	}
 }
 
-func BenchmarkLogWithLogWriterText(b *testing.B) {
+func BenchmarkLogWriterText(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.TextLogWriter(ctx, w{})
 
@@ -35,7 +35,7 @@ func BenchmarkLogWithLogWriterText(b *testing.B) {
 	}
 }
 
-func BenchmarkLogWithLogWriterJSONLevel(b *testing.B) {
+func BenchmarkLogWriterJSONLevel(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.JSONLogWriter(ctx, w{})
 
@@ -47,7 +47,7 @@ func BenchmarkLogWithLogWriterJSONLevel(b *testing.B) {
 	}
 }
 
-func BenchmarkLogWithLogWriterTextLevel(b *testing.B) {
+func BenchmarkLogWriterTextLevel(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.TextLogWriter(ctx, w{})
 
@@ -59,7 +59,7 @@ func BenchmarkLogWithLogWriterTextLevel(b *testing.B) {
 	}
 }
 
-func BenchmarkLogWithLogWriterJSONContextTags(b *testing.B) {
+func BenchmarkLogWriterJSONContextTags(b *testing.B) {
 	ctx := context.TODO()
 	logw.AppendInfo(ctx, "tag1", true)
 	logw.AppendInfo(ctx, "tag2", 42)
@@ -74,7 +74,7 @@ func BenchmarkLogWithLogWriterJSONContextTags(b *testing.B) {
 	}
 }
 
-func BenchmarkLogWithLogWriterTextContextTags(b *testing.B) {
+func BenchmarkLogWriterTextContextTags(b *testing.B) {
 	ctx := context.TODO()
 	logw.AppendInfo(ctx, "tag1", true)
 	logw.AppendInfo(ctx, "tag2", 42)
@@ -89,7 +89,7 @@ func BenchmarkLogWithLogWriterTextContextTags(b *testing.B) {
 	}
 }
 
-func BenchmarkLogWithLogWriterJSONInPlaceTags(b *testing.B) {
+func BenchmarkLogWriterJSONInPlaceTags(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.JSONLogWriter(ctx, w{})
 
@@ -110,7 +110,7 @@ func BenchmarkLogWithLogWriterJSONInPlaceTags(b *testing.B) {
 	}
 }
 
-func BenchmarkLogWithLogWriterTextInPlaceTags(b *testing.B) {
+func BenchmarkLogWriterTextInPlaceTags(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.TextLogWriter(ctx, w{})
 
@@ -131,7 +131,7 @@ func BenchmarkLogWithLogWriterTextInPlaceTags(b *testing.B) {
 	}
 }
 
-func BenchmarkLogWithLogWriterJSONAllTags(b *testing.B) {
+func BenchmarkLogWriterJSONAllTags(b *testing.B) {
 	ctx := context.TODO()
 	logw.AppendInfo(ctx, "tag1", true)
 	logw.AppendInfo(ctx, "tag2", 42)
@@ -155,7 +155,7 @@ func BenchmarkLogWithLogWriterJSONAllTags(b *testing.B) {
 	}
 }
 
-func BenchmarkLogWithLogWriterTextAllTags(b *testing.B) {
+func BenchmarkLogWriterTextAllTags(b *testing.B) {
 	ctx := context.TODO()
 	logw.AppendInfo(ctx, "tag1", true)
 	logw.AppendInfo(ctx, "tag2", 42)
