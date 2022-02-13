@@ -11,7 +11,7 @@ log.Println(logw.Error, "your message")
 ```
 or like this:
 ```go
-log.Prinln(logw.Error.WitMessage("Hello %s", "World"))
+log.Prinln(logw.Error.WithMessage("Hello %s", "World"))
 ```
 
 ### To install logw:

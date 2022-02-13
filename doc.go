@@ -4,7 +4,7 @@
 // You can control log level by using provided logw.Debug|Info|Wran|Error|Fatal variables like this:
 // 	log.Println(logw.Error, "your message")
 // or like this:
-// 	log.Prinln(logw.Error.WitMessage("Hello %s", "World"))
+// 	log.Prinln(logw.Error.WithMessage("Hello %s", "World"))
 //
 // To install logw:
 // 	go get -u github.com/andriiyaremenko/logwriter
