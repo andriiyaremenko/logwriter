@@ -3,6 +3,7 @@ package logw
 import (
 	"fmt"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -44,7 +45,7 @@ func Level(level int) LogLevel {
 	return LogLevel(strings.Join(
 		[]string{
 			logwHeader,
-			fmt.Sprintf("_\tlevel\t%d", level),
+			fmt.Sprintf("_level\t%d", level),
 			logwHeader,
 		}, "",
 	))
@@ -56,22 +57,27 @@ type LogLevel string
 
 // Adds in-place tag with string value
 func (t LogLevel) WithString(tag string, value string) LogLevel {
-	return t.appendTag(fmt.Sprintf("%s\tstring\t%s", tag, value))
+	return t.appendTag(strings.Join([]string{tag, "\t\"", value, "\""}, ""))
 }
 
 // Adds in-place tag with int value
 func (t LogLevel) WithInt(tag string, value int) LogLevel {
-	return t.appendTag(fmt.Sprintf("%s\tint\t%d", tag, value))
+	return t.appendTag(strings.Join([]string{tag, "\t", strconv.Itoa(value)}, ""))
 }
 
 // Adds in-place tag with float value
 func (t LogLevel) WithFloat(tag string, value float64) LogLevel {
-	return t.appendTag(fmt.Sprintf("%s\tfloat64\t%f", tag, value))
+	return t.appendTag(
+		strings.Join(
+			[]string{tag, "\t", strings.TrimRight(strconv.FormatFloat(value, 'f', 6, 64), "0")},
+			"",
+		),
+	)
 }
 
 // Adds in-place tag with bool value
 func (t LogLevel) WithBool(tag string, value bool) LogLevel {
-	return t.appendTag(fmt.Sprintf("%s\tbool\t%t", tag, value))
+	return t.appendTag(strings.Join([]string{tag, "\t", strconv.FormatBool(value)}, ""))
 }
 
 // Adds in-place trace tag with file name and row number
@@ -110,5 +116,5 @@ func getFileAndLine(calldepth int) string {
 		}
 	}
 
-	return fmt.Sprintf("[%s %d]", short, line)
+	return fmt.Sprintf("%s %d", short, line)
 }

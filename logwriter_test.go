@@ -3,6 +3,7 @@ package logw_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"log"
 	"testing"
 
@@ -31,6 +32,8 @@ func (s *logWriterSuite) TestLogWriter() {
 
 		s.log.SetOutput(logw.LogWriter(context.TODO(), b, s.getTestFormatter(test)))
 		s.log.Println("test")
+
+		s.T().Log(b.String())
 	})
 
 	s.Run("with_level_no_tags", func() {
@@ -43,6 +46,8 @@ func (s *logWriterSuite) TestLogWriter() {
 
 		s.log.SetOutput(logw.LogWriter(context.TODO(), b, s.getTestFormatter(test)))
 		s.log.Println(logw.Warn, "test")
+
+		s.T().Log(b.String())
 	})
 
 	s.Run("no_level_with_tags", func() {
@@ -56,8 +61,8 @@ func (s *logWriterSuite) TestLogWriter() {
 			s.Equal("test", result.Message)
 			s.ElementsMatch(
 				[]logw.Tag{
-					{Key: "foo", Value: "bar", Level: 2},
-					{Key: "foo", Value: "baz", Level: 2},
+					{Key: "foo", Value: []byte("\"bar\""), Level: 2},
+					{Key: "foo", Value: []byte("\"baz\""), Level: 2},
 				},
 				result.Tags,
 			)
@@ -65,6 +70,8 @@ func (s *logWriterSuite) TestLogWriter() {
 
 		s.log.SetOutput(logw.LogWriter(ctx, b, s.getTestFormatter(test)))
 		s.log.Println("test")
+
+		s.T().Log(b.String())
 	})
 
 	s.Run("with_level_with_tags", func() {
@@ -78,8 +85,8 @@ func (s *logWriterSuite) TestLogWriter() {
 			s.Equal("test", result.Message)
 			s.ElementsMatch(
 				[]logw.Tag{
-					{Key: "foo", Value: "bar", Level: 2},
-					{Key: "foo", Value: "baz", Level: 2},
+					{Key: "foo", Value: []byte("\"bar\""), Level: 2},
+					{Key: "foo", Value: []byte("\"baz\""), Level: 2},
 				},
 				result.Tags,
 			)
@@ -100,7 +107,7 @@ func (s *logWriterSuite) TestLogWriter() {
 			s.Equal("test", result.Message)
 			s.ElementsMatch(
 				[]logw.Tag{
-					{Key: "foo", Value: "baz", Level: 2},
+					{Key: "foo", Value: []byte("\"baz\""), Level: 2},
 				},
 				result.Tags,
 			)
@@ -108,6 +115,8 @@ func (s *logWriterSuite) TestLogWriter() {
 
 		s.log.SetOutput(logw.LogWriter(ctx, b, s.getTestFormatter(test)))
 		s.log.Println(logw.Warn, "test")
+
+		s.T().Log(b.String())
 	})
 
 	s.Run("with_level_in_place_tags", func() {
@@ -119,11 +128,11 @@ func (s *logWriterSuite) TestLogWriter() {
 			s.Equal("test", result.Message)
 			s.ElementsMatch(
 				[]logw.Tag{
-					{Key: "foo", Value: true, Level: 2},
-					{Key: "bar", Value: -1, Level: 2},
-					{Key: "float", Value: -1.2, Level: 2},
-					{Key: "baz", Value: "test", Level: 2},
-					{Key: "trace", Value: "[logwriter_test.go 139]", Level: 2},
+					{Key: "foo", Value: s.marshal(true), Level: 2},
+					{Key: "bar", Value: s.marshal(-1), Level: 2},
+					{Key: "float", Value: s.marshal(-1.2), Level: 2},
+					{Key: "baz", Value: []byte("\"test\""), Level: 2},
+					{Key: "trace", Value: []byte("\"logwriter_test.go 148\""), Level: 2},
 				},
 				result.Tags,
 			)
@@ -139,6 +148,8 @@ func (s *logWriterSuite) TestLogWriter() {
 				WithRowNumber(),
 			"test",
 		)
+
+		s.T().Log(b.String())
 	})
 
 	s.Run("with_message", func() {
@@ -152,6 +163,8 @@ func (s *logWriterSuite) TestLogWriter() {
 
 		s.log.SetOutput(logw.LogWriter(ctx, b, s.getTestFormatter(test)))
 		s.log.Println(logw.Info.WithMessage("Hello %s", "World"))
+
+		s.T().Log(b.String())
 	})
 }
 
@@ -164,4 +177,13 @@ func (s *logWriterSuite) getTestFormatter(test func(*logw.Log)) logw.LogWriterOp
 		},
 		logw.NoDate,
 	)
+}
+
+func (s *logWriterSuite) marshal(v interface{}) []byte {
+	b, err := json.Marshal(v)
+	if err != nil {
+		s.FailNow(err.Error())
+	}
+
+	return b
 }

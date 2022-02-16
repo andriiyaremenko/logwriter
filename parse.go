@@ -1,6 +1,7 @@
 package logw
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 )
@@ -19,45 +20,25 @@ func parseLog(m []byte) (int, []byte, []Tag) {
 	message = strings.TrimLeft(message, " ")
 
 	for _, row := range strings.Split(sections[1], "\n") {
-		tagSection := strings.SplitN(row, "\t", 3)
-		if len(tagSection) != 3 {
+		tagSection := strings.SplitN(row, "\t", 2)
+		if len(tagSection) != 2 {
 			continue
 		}
 
 		var err error
-		var value interface{}
 
-		switch tagSection[1] {
-		case "string":
-			value = string(tagSection[2])
-		case "bool":
-			value, err = strconv.ParseBool(string(tagSection[2]))
-			if err != nil {
-				value = tagSection[2]
-			}
-		case "int":
-			value, err = strconv.Atoi(string(tagSection[2]))
-			if err != nil {
-				value = tagSection[2]
-			}
-		case "float64":
-			value, err = strconv.ParseFloat(string(tagSection[2]), 64)
-			if err != nil {
-				value = tagSection[2]
-			}
-		case "level":
-			level, err = strconv.Atoi(string(tagSection[2]))
+		if tagSection[0] == "_level" {
+			level, err = strconv.Atoi(string(tagSection[1]))
 			if err != nil {
 				level = LevelInfo
 			}
+
 			continue
-		default:
-			value = tagSection[2]
 		}
 
 		tags = append(tags, Tag{
 			Key:   tagSection[0],
-			Value: value,
+			Value: json.RawMessage(tagSection[1]),
 		})
 	}
 

@@ -13,6 +13,49 @@ func (w w) Write(b []byte) (int, error) {
 	return 0, nil
 }
 
+func BenchmarkLogLevelCompositionNoMessage(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = logw.Info.
+			WithInt("attempt", i).
+			WithBool("attempting", true).
+			WithFloat("someFloat", 3.4).
+			WithString("greeting", "Hello World")
+	}
+}
+
+func BenchmarkLogLevelCompositionWithMessage(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = logw.Info.
+			WithInt("attempt", i).
+			WithBool("attempting", true).
+			WithFloat("someFloat", 3.4).
+			WithString("greeting", "Hello World").
+			WithMessage("this going to be fun: %d", i)
+	}
+}
+
+func BenchmarkLogFormatterWrite(b *testing.B) {
+	ctx := context.TODO()
+	f := func(*logw.Log, string) []byte {
+		return []byte{}
+	}
+	writer := logw.LogWriter(ctx, w{}, logw.Option(logw.LevelInfo, f, logw.NoDate))
+	m := []byte(
+		logw.Info.
+			WithInt("attempt", 1).
+			WithBool("attempting", true).
+			WithFloat("someFloat", 3.4).
+			WithString("greeting", "Hello World").
+			WithMessage("this going to be fun: %d", 1),
+	)
+
+	for i := 0; i < b.N; i++ {
+		if _, err := writer.Write(m); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkLogWriterJSON(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.JSONLogWriter(ctx, w{})

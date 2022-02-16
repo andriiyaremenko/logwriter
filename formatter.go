@@ -2,8 +2,7 @@ package logw
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 
@@ -20,31 +19,53 @@ type Formatter func(log *Log, dateLayout string) []byte
 // Has format of:
 //  { "date": string|optional, "level":string, "levelCode":int, "message":string }
 func JSONFormatter(log *Log, dateLayout string) []byte {
-	jsonLog := make(map[string]interface{})
-	jsonLog["levelCode"] = log.LevelCode
-	jsonLog["level"] = log.Level
-	if dateLayout != NoDate {
-		jsonLog["date"] = log.Date.UTC().Format(dateLayout)
-	}
-	jsonLog["message"] = log.Message
+	var sb strings.Builder
 
-	tags := make(map[string][]interface{})
+	sb.WriteString("{")
+
+	sb.WriteString("\"levelCode\":")
+	sb.WriteString(strconv.Itoa(log.LevelCode))
+	sb.WriteString(",")
+
+	sb.WriteString("\"level\":")
+	sb.WriteString("\"")
+	sb.WriteString(log.Level)
+	sb.WriteString("\"")
+	sb.WriteString(",")
+
+	if dateLayout != NoDate {
+		sb.WriteString("\"date\":")
+		sb.WriteString("\"")
+		sb.WriteString(log.Date.UTC().Format(dateLayout))
+		sb.WriteString("\"")
+		sb.WriteString(",")
+	}
+
+	sb.WriteString("\"message\":")
+	sb.WriteString("\"")
+
+	sb.WriteString(log.Message)
+	sb.WriteString("\"")
+
+	tags := make(map[string][][]byte)
 	for _, tag := range log.Tags {
 		tags[tag.Key] = append(tags[tag.Key], tag.Value)
 	}
 
 	for k, v := range tags {
-		jsonLog[k] = v
+		sb.WriteString(",")
+		sb.WriteString("\"")
+		sb.WriteString(k)
+		sb.WriteString("\"")
+		sb.WriteString(":")
+		sb.WriteString("[")
+		sb.Write(bytes.Join(v, []byte(",")))
+		sb.WriteString("]")
 	}
 
-	b, err := json.Marshal(jsonLog)
-	if err != nil {
-		fmt.Println(color.ColorizeText(color.ANSIColorRed, fmt.Sprintf("LogWriterJSON: failed to write log: %s", err)))
+	sb.WriteString("}\n")
 
-		return []byte("")
-	}
-
-	return append(b, '\n')
+	return []byte(sb.String())
 }
 
 // Text message formatter
@@ -69,15 +90,17 @@ func TextFormatter(log *Log, dateTemplate string) []byte {
 		sb.WriteString("\t")
 	}
 
-	tags := make(map[string][]interface{})
+	tags := make(map[string][][]byte)
 	for _, tag := range log.Tags {
 		tags[tag.Key] = append(tags[tag.Key], tag.Value)
 	}
 
-	for k, v := range tags {
+	for k, values := range tags {
 		sb.WriteString(k)
 		sb.WriteString(":")
-		sb.WriteString(fmt.Sprintf("%v", v))
+		sb.WriteString("[")
+		sb.WriteString(string(bytes.Join(values, []byte(","))))
+		sb.WriteString("]")
 
 		sb.WriteString("\t")
 	}
@@ -89,8 +112,13 @@ func TextFormatter(log *Log, dateTemplate string) []byte {
 	buf := new(bytes.Buffer)
 	w := tabwriter.NewWriter(buf, 0, 2, 2, ' ', 0)
 
-	fmt.Fprint(w, message)
-	w.Flush()
+	if _, err := w.Write([]byte(message)); err != nil {
+		return []byte(message)
+	}
+
+	if err := w.Flush(); err != nil {
+		return []byte(message)
+	}
 
 	return buf.Bytes()
 }

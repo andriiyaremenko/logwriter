@@ -2,12 +2,16 @@ package logw
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+
+	"github.com/andriiyaremenko/logwriter/color"
 )
 
 type Tag struct {
 	Key   string
-	Value interface{}
 	Level int
+	Value json.RawMessage
 }
 
 type key int
@@ -41,9 +45,16 @@ func AppendFatal(ctx context.Context, tag string, value interface{}) context.Con
 
 // Addends Tag to context, that will be logged with provided level
 func AppendTag(ctx context.Context, level int, tag string, value interface{}) context.Context {
+	b, err := json.Marshal(value)
+	if err != nil {
+		fmt.Println(color.ColorizeText(color.ANSIColorRed, fmt.Sprintf("cannot append tag value: %s", err)))
+
+		return ctx
+	}
+
 	newTag := Tag{
 		Key:   tag,
-		Value: value,
+		Value: json.RawMessage(b),
 		Level: level,
 	}
 
@@ -53,7 +64,9 @@ func AppendTag(ctx context.Context, level int, tag string, value interface{}) co
 	}
 
 	for _, oldTag := range tags {
-		if oldTag == newTag {
+		if oldTag.Key == newTag.Key &&
+			oldTag.Level <= newTag.Level &&
+			hasSameValue(oldTag.Value, newTag.Value) {
 			return context.WithValue(ctx, logwriterKey, tags)
 		}
 	}
@@ -75,4 +88,18 @@ func getTags(ctx context.Context, level int) []Tag {
 	}
 
 	return result
+}
+
+func hasSameValue(a, b interface{}) bool {
+	aValue, ok := a.(json.RawMessage)
+	if !ok {
+		return false
+	}
+
+	bValue, ok := b.(json.RawMessage)
+	if !ok {
+		return false
+	}
+
+	return string(aValue) == string(bValue)
 }
