@@ -38,42 +38,36 @@ func TextLogWriter(ctx context.Context, w io.Writer) io.Writer {
 
 // Generic LogWriter constructor
 func LogWriter(ctx context.Context, w io.Writer, conf LogWriterOption) io.Writer {
-	level, formatter, dateTemplate := conf()
+	loggingLevel, formatter, dateTemplate := conf()
+
 	return &logWriter{
-		ctx:          ctx,
-		w:            w,
-		level:        level,
-		dateTemplate: dateTemplate,
-		formatter:    formatter,
+		write: func(p []byte) (int, error) {
+			now := time.Now().Round(time.Millisecond)
+			level, message, tags := parseLog(p)
+
+			if level < loggingLevel {
+				return 0, nil
+			}
+
+			tags = append(getTags(ctx, level), tags...)
+
+			log := Log{
+				LevelCode: level,
+				Level:     getLevelText(level),
+				Message:   strings.TrimRight(string(message), "\n"),
+				Tags:      tags,
+				Date:      now,
+			}
+
+			return w.Write(formatter(&log, dateTemplate))
+		},
 	}
 }
 
 type logWriter struct {
-	ctx context.Context
-	w   io.Writer
-
-	level        int
-	dateTemplate string
-	formatter    Formatter
+	write func(p []byte) (int, error)
 }
 
-func (lw *logWriter) Write(p []byte) (int, error) {
-	now := time.Now().Round(time.Millisecond)
-	level, message, tags := parseLog(p)
-
-	if level < lw.level {
-		return 0, nil
-	}
-
-	tags = append(getTags(lw.ctx, level), tags...)
-
-	log := Log{
-		LevelCode: level,
-		Level:     getLevelText(level),
-		Message:   strings.TrimRight(string(message), "\n"),
-		Tags:      tags,
-		Date:      now,
-	}
-
-	return lw.w.Write(lw.formatter(&log, lw.dateTemplate))
+func (w *logWriter) Write(p []byte) (int, error) {
+	return w.write(p)
 }

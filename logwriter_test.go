@@ -145,7 +145,7 @@ func (s *logWriterSuite) TestLogWriter() {
 				WithInt("bar", -1).
 				WithFloat("float", -1.2).
 				WithString("baz", "test").
-				WithRowNumber(),
+				WithTrace(),
 			"test",
 		)
 

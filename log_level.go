@@ -21,9 +21,7 @@ const (
 	LevelFatal
 )
 
-const (
-	logwHeader string = "-logw-\n"
-)
+const logwHeader string = "-logw-\n"
 
 var (
 	// Sets Debug message level
@@ -38,17 +36,13 @@ var (
 	Fatal LogLevel = Level(LevelFatal)
 )
 
-var tagHeaderLen int = len(logwHeader)
+var (
+	logwHeaderLen int = len(logwHeader)
+)
 
 // Sets message level
 func Level(level int) LogLevel {
-	return LogLevel(strings.Join(
-		[]string{
-			logwHeader,
-			fmt.Sprintf("_level\t%d", level),
-			logwHeader,
-		}, "",
-	))
+	return LogLevel(strings.Join([]string{logwHeader, "_level", "\t", strconv.Itoa(level), "\n", logwHeader}, ""))
 }
 
 // Message log level
@@ -57,32 +51,27 @@ type LogLevel string
 
 // Adds in-place tag with string value
 func (t LogLevel) WithString(tag string, value string) LogLevel {
-	return t.appendTag(strings.Join([]string{tag, "\t\"", value, "\""}, ""))
+	return t.appendTag(tag, "\""+value+"\"")
 }
 
 // Adds in-place tag with int value
 func (t LogLevel) WithInt(tag string, value int) LogLevel {
-	return t.appendTag(strings.Join([]string{tag, "\t", strconv.Itoa(value)}, ""))
+	return t.appendTag(tag, strconv.Itoa(value))
 }
 
 // Adds in-place tag with float value
 func (t LogLevel) WithFloat(tag string, value float64) LogLevel {
-	return t.appendTag(
-		strings.Join(
-			[]string{tag, "\t", strings.TrimRight(strconv.FormatFloat(value, 'f', 6, 64), "0")},
-			"",
-		),
-	)
+	return t.appendTag(tag, strings.TrimRight(strconv.FormatFloat(value, 'f', 6, 64), "0"))
 }
 
 // Adds in-place tag with bool value
 func (t LogLevel) WithBool(tag string, value bool) LogLevel {
-	return t.appendTag(strings.Join([]string{tag, "\t", strconv.FormatBool(value)}, ""))
+	return t.appendTag(tag, strconv.FormatBool(value))
 }
 
 // Adds in-place trace tag with file name and row number
 // Tag key: "trace"
-func (t LogLevel) WithRowNumber() LogLevel {
+func (t LogLevel) WithTrace() LogLevel {
 	return t.WithString("trace", getFileAndLine(1))
 }
 
@@ -91,10 +80,10 @@ func (t LogLevel) WithMessage(template string, v ...interface{}) string {
 	return strings.Join([]string{string(t), fmt.Sprintf(template, v...)}, "")
 }
 
-func (t LogLevel) appendTag(tagSection string) LogLevel {
+func (t LogLevel) appendTag(tag, value string) LogLevel {
 	return LogLevel(
 		strings.Join(
-			[]string{string(t[:tagHeaderLen]), tagSection, "\n", string(t[tagHeaderLen:])}, "",
+			[]string{string(t[:logwHeaderLen]), tag, "\t", value, "\n", string(t[logwHeaderLen:])}, "",
 		),
 	)
 }

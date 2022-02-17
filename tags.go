@@ -47,7 +47,7 @@ func AppendFatal(ctx context.Context, tag string, value interface{}) context.Con
 func AppendTag(ctx context.Context, level int, tag string, value interface{}) context.Context {
 	b, err := json.Marshal(value)
 	if err != nil {
-		fmt.Println(color.ColorizeText(color.ANSIColorRed, fmt.Sprintf("cannot append tag value: %s", err)))
+		fmt.Println(color.ColorizeText(color.ANSIColorRed, fmt.Sprintf("cannot append tag %q value: %s", tag, err)))
 
 		return ctx
 	}
