@@ -51,15 +51,16 @@ func LogWriter(ctx context.Context, w io.Writer, conf LogWriterOption) io.Writer
 
 			tags = append(getTags(ctx, level), tags...)
 
-			log := Log{
-				LevelCode: level,
-				Level:     getLevelText(level),
-				Message:   strings.TrimRight(string(message), "\n"),
-				Tags:      tags,
-				Date:      now,
-			}
-
-			return w.Write(formatter(&log, dateTemplate))
+			return w.Write(
+				formatter(
+					getLevelText(level),
+					level,
+					tags,
+					now,
+					dateTemplate,
+					strings.TrimRight(string(message), "\n"),
+				),
+			)
 		},
 	}
 }

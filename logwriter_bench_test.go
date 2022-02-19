@@ -2,16 +2,12 @@ package logw_test
 
 import (
 	"context"
+	"io"
 	"testing"
+	"time"
 
 	logw "github.com/andriiyaremenko/logwriter"
 )
-
-type w struct{}
-
-func (w w) Write(b []byte) (int, error) {
-	return 0, nil
-}
 
 func BenchmarkLogLevelCompositionNoMessage(b *testing.B) {
 	for i := 0; i < b.N; i++ {
@@ -36,10 +32,17 @@ func BenchmarkLogLevelCompositionWithMessage(b *testing.B) {
 
 func BenchmarkLogFormatterWrite(b *testing.B) {
 	ctx := context.TODO()
-	f := func(*logw.Log, string) []byte {
+	f := func(
+		level string,
+		levelCode int,
+		tags []logw.Tag,
+		timeStamp time.Time,
+		dateLayout string,
+		message string,
+	) []byte {
 		return []byte{}
 	}
-	writer := logw.LogWriter(ctx, w{}, logw.Option(logw.LevelInfo, f, logw.NoDate))
+	writer := logw.LogWriter(ctx, io.Discard, logw.Option(logw.LevelInfo, f, logw.NoDate))
 	m := []byte(
 		logw.Info.
 			WithInt("attempt", 1).
@@ -58,7 +61,7 @@ func BenchmarkLogFormatterWrite(b *testing.B) {
 
 func BenchmarkLogWriterJSON(b *testing.B) {
 	ctx := context.TODO()
-	writer := logw.JSONLogWriter(ctx, w{})
+	writer := logw.JSONLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
 		if _, err := writer.Write([]byte("this going to be fun ")); err != nil {
@@ -69,7 +72,7 @@ func BenchmarkLogWriterJSON(b *testing.B) {
 
 func BenchmarkLogWriterText(b *testing.B) {
 	ctx := context.TODO()
-	writer := logw.TextLogWriter(ctx, w{})
+	writer := logw.TextLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
 		if _, err := writer.Write([]byte("this going to be fun")); err != nil {
@@ -80,7 +83,7 @@ func BenchmarkLogWriterText(b *testing.B) {
 
 func BenchmarkLogWriterJSONLevel(b *testing.B) {
 	ctx := context.TODO()
-	writer := logw.JSONLogWriter(ctx, w{})
+	writer := logw.JSONLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
 		_, err := writer.Write([]byte(logw.Info.WithMessage("this going to be fun: %d", i)))
@@ -92,7 +95,7 @@ func BenchmarkLogWriterJSONLevel(b *testing.B) {
 
 func BenchmarkLogWriterTextLevel(b *testing.B) {
 	ctx := context.TODO()
-	writer := logw.TextLogWriter(ctx, w{})
+	writer := logw.TextLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
 		_, err := writer.Write([]byte(logw.Info.WithMessage("this going to be fun: %d", i)))
@@ -107,7 +110,7 @@ func BenchmarkLogWriterJSONContextTags(b *testing.B) {
 	logw.AppendInfo(ctx, "tag1", true)
 	logw.AppendInfo(ctx, "tag2", 42)
 	logw.AppendInfo(ctx, "tag3", "Hello World")
-	writer := logw.JSONLogWriter(ctx, w{})
+	writer := logw.JSONLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
 		_, err := writer.Write([]byte("this going to be fun "))
@@ -122,7 +125,7 @@ func BenchmarkLogWriterTextContextTags(b *testing.B) {
 	logw.AppendInfo(ctx, "tag1", true)
 	logw.AppendInfo(ctx, "tag2", 42)
 	logw.AppendInfo(ctx, "tag3", "Hello World")
-	writer := logw.TextLogWriter(ctx, w{})
+	writer := logw.TextLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
 		_, err := writer.Write([]byte("this going to be fun "))
@@ -134,7 +137,7 @@ func BenchmarkLogWriterTextContextTags(b *testing.B) {
 
 func BenchmarkLogWriterJSONInPlaceTags(b *testing.B) {
 	ctx := context.TODO()
-	writer := logw.JSONLogWriter(ctx, w{})
+	writer := logw.JSONLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
 		_, err := writer.Write(
@@ -155,7 +158,7 @@ func BenchmarkLogWriterJSONInPlaceTags(b *testing.B) {
 
 func BenchmarkLogWriterTextInPlaceTags(b *testing.B) {
 	ctx := context.TODO()
-	writer := logw.TextLogWriter(ctx, w{})
+	writer := logw.TextLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
 		_, err := writer.Write(
@@ -179,7 +182,7 @@ func BenchmarkLogWriterJSONAllTags(b *testing.B) {
 	logw.AppendInfo(ctx, "tag1", true)
 	logw.AppendInfo(ctx, "tag2", 42)
 	logw.AppendInfo(ctx, "tag3", "Hello World")
-	writer := logw.JSONLogWriter(ctx, w{})
+	writer := logw.JSONLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
 		_, err := writer.Write(
@@ -204,7 +207,7 @@ func BenchmarkLogWriterTextAllTags(b *testing.B) {
 	logw.AppendInfo(ctx, "tag2", 42)
 	logw.AppendInfo(ctx, "tag3", "Hello World")
 
-	writer := logw.TextLogWriter(ctx, w{})
+	writer := logw.TextLogWriter(ctx, io.Discard)
 	for i := 0; i < b.N; i++ {
 		_, err := writer.Write(
 			[]byte(

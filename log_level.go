@@ -42,7 +42,9 @@ var (
 
 // Sets message level
 func Level(level int) LogLevel {
-	return LogLevel(strings.Join([]string{logwHeader, "_level", "\t", strconv.Itoa(level), "\n", logwHeader}, ""))
+	return LogLevel(
+		strings.Join([]string{logwHeader, "_level", "\t", strconv.Itoa(level), "\n", logwHeader}, ""),
+	)
 }
 
 // Message log level

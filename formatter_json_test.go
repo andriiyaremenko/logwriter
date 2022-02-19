@@ -23,17 +23,10 @@ func (s *jsonFormatterSuite) TestProducesValidJSON() {
 		{Key: "bar", Value: s.marshal(-1), Level: 2},
 		{Key: "float", Value: s.marshal(-1.2), Level: 2},
 		{Key: "baz", Value: []byte("\"test\""), Level: 2},
-		{Key: "trace", Value: []byte("\"logwriter_test.go 148\""), Level: 2},
+		{Key: "trace", Value: []byte("\"logwriter_test.go 29\""), Level: 2},
 		{Key: "some_slice", Value: s.marshal([]interface{}{1, true, "test", 1.18}), Level: 2},
 	}
-	log := logw.Log{
-		LevelCode: 2,
-		Level:     "info",
-		Message:   "test json output",
-		Date:      time.Now(),
-		Tags:      tags,
-	}
-	b := logw.JSONFormatter(&log, time.RFC3339)
+	b := logw.JSONFormatter("info", 2, tags, time.Now(), time.RFC3339, "test json output")
 
 	s.T().Log(string(b))
 

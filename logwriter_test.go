@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log"
 	"testing"
+	"time"
 
 	logw "github.com/andriiyaremenko/logwriter"
 	"github.com/stretchr/testify/suite"
@@ -24,10 +25,16 @@ type logWriterSuite struct {
 func (s *logWriterSuite) TestLogWriter() {
 	s.Run("no_level_no_tags", func() {
 		b := new(bytes.Buffer)
-		test := func(result *logw.Log) {
-			s.Equal(2, result.LevelCode)
-			s.Equal("info", result.Level)
-			s.Equal("test", result.Message)
+		test := func(
+			level string,
+			levelCode int,
+			tags []logw.Tag,
+			timeStamp time.Time,
+			message string,
+		) {
+			s.Equal(2, levelCode)
+			s.Equal("info", level)
+			s.Equal("test", message)
 		}
 
 		s.log.SetOutput(logw.LogWriter(context.TODO(), b, s.getTestFormatter(test)))
@@ -38,10 +45,16 @@ func (s *logWriterSuite) TestLogWriter() {
 
 	s.Run("with_level_no_tags", func() {
 		b := new(bytes.Buffer)
-		test := func(result *logw.Log) {
-			s.Equal(3, result.LevelCode)
-			s.Equal("warn", result.Level)
-			s.Equal("test", result.Message)
+		test := func(
+			level string,
+			levelCode int,
+			tags []logw.Tag,
+			timeStamp time.Time,
+			message string,
+		) {
+			s.Equal(3, levelCode)
+			s.Equal("warn", level)
+			s.Equal("test", message)
 		}
 
 		s.log.SetOutput(logw.LogWriter(context.TODO(), b, s.getTestFormatter(test)))
@@ -55,16 +68,22 @@ func (s *logWriterSuite) TestLogWriter() {
 		ctx := context.TODO()
 		ctx = logw.AppendInfo(ctx, "foo", "bar")
 		ctx = logw.AppendInfo(ctx, "foo", "baz")
-		test := func(result *logw.Log) {
-			s.Equal(2, result.LevelCode)
-			s.Equal("info", result.Level)
-			s.Equal("test", result.Message)
+		test := func(
+			level string,
+			levelCode int,
+			tags []logw.Tag,
+			timeStamp time.Time,
+			message string,
+		) {
+			s.Equal(2, levelCode)
+			s.Equal("info", level)
+			s.Equal("test", message)
 			s.ElementsMatch(
 				[]logw.Tag{
 					{Key: "foo", Value: []byte("\"bar\""), Level: 2},
 					{Key: "foo", Value: []byte("\"baz\""), Level: 2},
 				},
-				result.Tags,
+				tags,
 			)
 		}
 
@@ -79,16 +98,22 @@ func (s *logWriterSuite) TestLogWriter() {
 		ctx := context.TODO()
 		ctx = logw.AppendInfo(ctx, "foo", "bar")
 		ctx = logw.AppendInfo(ctx, "foo", "baz")
-		test := func(result *logw.Log) {
-			s.Equal(4, result.LevelCode)
-			s.Equal("error", result.Level)
-			s.Equal("test", result.Message)
+		test := func(
+			level string,
+			levelCode int,
+			tags []logw.Tag,
+			timeStamp time.Time,
+			message string,
+		) {
+			s.Equal(4, levelCode)
+			s.Equal("error", level)
+			s.Equal("test", message)
 			s.ElementsMatch(
 				[]logw.Tag{
 					{Key: "foo", Value: []byte("\"bar\""), Level: 2},
 					{Key: "foo", Value: []byte("\"baz\""), Level: 2},
 				},
-				result.Tags,
+				tags,
 			)
 		}
 
@@ -101,15 +126,21 @@ func (s *logWriterSuite) TestLogWriter() {
 		ctx := context.TODO()
 		ctx = logw.AppendInfo(ctx, "foo", "baz")
 		ctx = logw.AppendError(ctx, "foo", "bar")
-		test := func(result *logw.Log) {
-			s.Equal(3, result.LevelCode)
-			s.Equal("warn", result.Level)
-			s.Equal("test", result.Message)
+		test := func(
+			level string,
+			levelCode int,
+			tags []logw.Tag,
+			timeStamp time.Time,
+			message string,
+		) {
+			s.Equal(3, levelCode)
+			s.Equal("warn", level)
+			s.Equal("test", message)
 			s.ElementsMatch(
 				[]logw.Tag{
 					{Key: "foo", Value: []byte("\"baz\""), Level: 2},
 				},
-				result.Tags,
+				tags,
 			)
 		}
 
@@ -122,19 +153,25 @@ func (s *logWriterSuite) TestLogWriter() {
 	s.Run("with_level_in_place_tags", func() {
 		b := new(bytes.Buffer)
 		ctx := context.TODO()
-		test := func(result *logw.Log) {
-			s.Equal(2, result.LevelCode)
-			s.Equal("info", result.Level)
-			s.Equal("test", result.Message)
+		test := func(
+			level string,
+			levelCode int,
+			tags []logw.Tag,
+			timeStamp time.Time,
+			message string,
+		) {
+			s.Equal(2, levelCode)
+			s.Equal("info", level)
+			s.Equal("test", message)
 			s.ElementsMatch(
 				[]logw.Tag{
 					{Key: "foo", Value: s.marshal(true), Level: 2},
 					{Key: "bar", Value: s.marshal(-1), Level: 2},
 					{Key: "float", Value: s.marshal(-1.2), Level: 2},
 					{Key: "baz", Value: []byte("\"test\""), Level: 2},
-					{Key: "trace", Value: []byte("\"logwriter_test.go 148\""), Level: 2},
+					{Key: "trace", Value: []byte("\"logwriter_test.go 185\""), Level: 2},
 				},
-				result.Tags,
+				tags,
 			)
 		}
 
@@ -155,10 +192,16 @@ func (s *logWriterSuite) TestLogWriter() {
 	s.Run("with_message", func() {
 		b := new(bytes.Buffer)
 		ctx := context.TODO()
-		test := func(result *logw.Log) {
-			s.Equal(2, result.LevelCode)
-			s.Equal("info", result.Level)
-			s.Equal("Hello World", result.Message)
+		test := func(
+			level string,
+			levelCode int,
+			tags []logw.Tag,
+			timeStamp time.Time,
+			message string,
+		) {
+			s.Equal(2, levelCode)
+			s.Equal("info", level)
+			s.Equal("Hello World", message)
 		}
 
 		s.log.SetOutput(logw.LogWriter(ctx, b, s.getTestFormatter(test)))
@@ -168,12 +211,28 @@ func (s *logWriterSuite) TestLogWriter() {
 	})
 }
 
-func (s *logWriterSuite) getTestFormatter(test func(*logw.Log)) logw.LogWriterOption {
+func (s *logWriterSuite) getTestFormatter(
+	test func(string, int, []logw.Tag, time.Time, string),
+) logw.LogWriterOption {
 	return logw.Option(2,
-		func(log *logw.Log, dateF string) []byte {
-			test(log)
+		func(
+			level string,
+			levelCode int,
+			tags []logw.Tag,
+			timeStamp time.Time,
+			dateLayout string,
+			message string,
+		) []byte {
+			test(level, levelCode, tags, timeStamp, message)
 
-			return logw.TextFormatter(log, dateF)
+			return logw.TextFormatter(
+				level,
+				levelCode,
+				tags,
+				timeStamp,
+				dateLayout,
+				message,
+			)
 		},
 		logw.NoDate,
 	)

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/andriiyaremenko/logwriter/color"
 )
@@ -13,30 +14,44 @@ import (
 const NoDate = "NO_DATE"
 
 // Log message formatter
-type Formatter func(log *Log, dateLayout string) []byte
+type Formatter func(
+	level string,
+	levelCode int,
+	tags []Tag,
+	timeStamp time.Time,
+	dateLayout string,
+	message string,
+) []byte
 
 // JSON message formatter
 // Has format of:
 //  { "date": string|optional, "level":string, "levelCode":int, "message":string }
-func JSONFormatter(log *Log, dateLayout string) []byte {
+func JSONFormatter(
+	level string,
+	levelCode int,
+	tags []Tag,
+	timeStamp time.Time,
+	dateLayout string,
+	message string,
+) []byte {
 	var sb strings.Builder
 
 	sb.WriteString("{")
 
 	sb.WriteString("\"levelCode\":")
-	sb.WriteString(strconv.Itoa(log.LevelCode))
+	sb.WriteString(strconv.Itoa(levelCode))
 	sb.WriteString(",")
 
 	sb.WriteString("\"level\":")
 	sb.WriteString("\"")
-	sb.WriteString(log.Level)
+	sb.WriteString(level)
 	sb.WriteString("\"")
 	sb.WriteString(",")
 
 	if dateLayout != NoDate {
 		sb.WriteString("\"date\":")
 		sb.WriteString("\"")
-		sb.WriteString(log.Date.UTC().Format(dateLayout))
+		sb.WriteString(timeStamp.UTC().Format(dateLayout))
 		sb.WriteString("\"")
 		sb.WriteString(",")
 	}
@@ -44,15 +59,15 @@ func JSONFormatter(log *Log, dateLayout string) []byte {
 	sb.WriteString("\"message\":")
 	sb.WriteString("\"")
 
-	sb.WriteString(log.Message)
+	sb.WriteString(message)
 	sb.WriteString("\"")
 
-	tags := make(map[string][][]byte)
-	for _, tag := range log.Tags {
-		tags[tag.Key] = append(tags[tag.Key], tag.Value)
+	tagsMap := make(map[string][][]byte)
+	for _, tag := range tags {
+		tagsMap[tag.Key] = append(tagsMap[tag.Key], tag.Value)
 	}
 
-	for k, v := range tags {
+	for k, v := range tagsMap {
 		sb.WriteString(",")
 		sb.WriteString("\"")
 		sb.WriteString(k)
@@ -71,9 +86,16 @@ func JSONFormatter(log *Log, dateLayout string) []byte {
 // Text message formatter
 // Has format of:
 //  level  ?time-stamp  tag-key:tag-value  message
-func TextFormatter(log *Log, dateTemplate string) []byte {
+func TextFormatter(
+	level string,
+	levelCode int,
+	tags []Tag,
+	timeStamp time.Time,
+	dateLayout string,
+	message string,
+) []byte {
 	var sb strings.Builder
-	levelColor := color.GetLevelColor(log.LevelCode)
+	levelColor := color.GetLevelColor(levelCode)
 	adjust := func(s string) string {
 		if s == "info" || s == "warn" {
 			return " " + s
@@ -82,20 +104,20 @@ func TextFormatter(log *Log, dateTemplate string) []byte {
 		return s
 	}
 
-	sb.WriteString(color.ColorizeText(levelColor, adjust(log.Level)))
+	sb.WriteString(color.ColorizeText(levelColor, adjust(level)))
 	sb.WriteString("\t")
 
-	if dateTemplate != NoDate {
-		sb.WriteString(color.ColorizeText(color.ANSIColorGray, log.Date.Format(dateTemplate)))
+	if dateLayout != NoDate {
+		sb.WriteString(color.ColorizeText(color.ANSIColorGray, timeStamp.Format(dateLayout)))
 		sb.WriteString("\t")
 	}
 
-	tags := make(map[string][][]byte)
-	for _, tag := range log.Tags {
-		tags[tag.Key] = append(tags[tag.Key], tag.Value)
+	tagsMap := make(map[string][][]byte)
+	for _, tag := range tags {
+		tagsMap[tag.Key] = append(tagsMap[tag.Key], tag.Value)
 	}
 
-	for k, values := range tags {
+	for k, values := range tagsMap {
 		sb.WriteString(k)
 		sb.WriteString(":")
 		sb.WriteString("[")
@@ -105,10 +127,10 @@ func TextFormatter(log *Log, dateTemplate string) []byte {
 		sb.WriteString("\t")
 	}
 
-	sb.WriteString(strings.TrimRight(log.Message, "\n"))
+	sb.WriteString(strings.TrimRight(message, "\n"))
 	sb.WriteString("\n")
 
-	message := sb.String()
+	message = sb.String()
 	buf := new(bytes.Buffer)
 	w := tabwriter.NewWriter(buf, 0, 2, 2, ' ', 0)
 
