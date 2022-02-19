@@ -30,11 +30,11 @@ func (s *logWriterSuite) TestLogWriter() {
 			levelCode int,
 			tags []logw.Tag,
 			timeStamp time.Time,
-			message string,
+			message []byte,
 		) {
 			s.Equal(2, levelCode)
 			s.Equal("info", level)
-			s.Equal("test", message)
+			s.Equal("test", string(message))
 		}
 
 		s.log.SetOutput(logw.LogWriter(context.TODO(), b, s.getTestFormatter(test)))
@@ -50,11 +50,11 @@ func (s *logWriterSuite) TestLogWriter() {
 			levelCode int,
 			tags []logw.Tag,
 			timeStamp time.Time,
-			message string,
+			message []byte,
 		) {
 			s.Equal(3, levelCode)
 			s.Equal("warn", level)
-			s.Equal("test", message)
+			s.Equal("test", string(message))
 		}
 
 		s.log.SetOutput(logw.LogWriter(context.TODO(), b, s.getTestFormatter(test)))
@@ -73,11 +73,11 @@ func (s *logWriterSuite) TestLogWriter() {
 			levelCode int,
 			tags []logw.Tag,
 			timeStamp time.Time,
-			message string,
+			message []byte,
 		) {
 			s.Equal(2, levelCode)
 			s.Equal("info", level)
-			s.Equal("test", message)
+			s.Equal("test", string(message))
 			s.ElementsMatch(
 				[]logw.Tag{
 					{Key: "foo", Value: []byte("\"bar\""), Level: 2},
@@ -103,11 +103,11 @@ func (s *logWriterSuite) TestLogWriter() {
 			levelCode int,
 			tags []logw.Tag,
 			timeStamp time.Time,
-			message string,
+			message []byte,
 		) {
 			s.Equal(4, levelCode)
 			s.Equal("error", level)
-			s.Equal("test", message)
+			s.Equal("test", string(message))
 			s.ElementsMatch(
 				[]logw.Tag{
 					{Key: "foo", Value: []byte("\"bar\""), Level: 2},
@@ -131,11 +131,11 @@ func (s *logWriterSuite) TestLogWriter() {
 			levelCode int,
 			tags []logw.Tag,
 			timeStamp time.Time,
-			message string,
+			message []byte,
 		) {
 			s.Equal(3, levelCode)
 			s.Equal("warn", level)
-			s.Equal("test", message)
+			s.Equal("test", string(message))
 			s.ElementsMatch(
 				[]logw.Tag{
 					{Key: "foo", Value: []byte("\"baz\""), Level: 2},
@@ -158,11 +158,11 @@ func (s *logWriterSuite) TestLogWriter() {
 			levelCode int,
 			tags []logw.Tag,
 			timeStamp time.Time,
-			message string,
+			message []byte,
 		) {
 			s.Equal(2, levelCode)
 			s.Equal("info", level)
-			s.Equal("test", message)
+			s.Equal("test", string(message))
 			s.ElementsMatch(
 				[]logw.Tag{
 					{Key: "foo", Value: s.marshal(true), Level: 2},
@@ -197,11 +197,11 @@ func (s *logWriterSuite) TestLogWriter() {
 			levelCode int,
 			tags []logw.Tag,
 			timeStamp time.Time,
-			message string,
+			message []byte,
 		) {
 			s.Equal(2, levelCode)
 			s.Equal("info", level)
-			s.Equal("Hello World", message)
+			s.Equal("Hello World", string(message))
 		}
 
 		s.log.SetOutput(logw.LogWriter(ctx, b, s.getTestFormatter(test)))
@@ -212,7 +212,7 @@ func (s *logWriterSuite) TestLogWriter() {
 }
 
 func (s *logWriterSuite) getTestFormatter(
-	test func(string, int, []logw.Tag, time.Time, string),
+	test func(string, int, []logw.Tag, time.Time, []byte),
 ) logw.LogWriterOption {
 	return logw.Option(2,
 		func(
@@ -221,7 +221,7 @@ func (s *logWriterSuite) getTestFormatter(
 			tags []logw.Tag,
 			timeStamp time.Time,
 			dateLayout string,
-			message string,
+			message []byte,
 		) []byte {
 			test(level, levelCode, tags, timeStamp, message)
 

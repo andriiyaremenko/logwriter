@@ -1,9 +1,9 @@
 package logw
 
 import (
+	"bytes"
 	"context"
 	"io"
-	"strings"
 	"time"
 )
 
@@ -58,7 +58,7 @@ func LogWriter(ctx context.Context, w io.Writer, conf LogWriterOption) io.Writer
 					tags,
 					now,
 					dateTemplate,
-					strings.TrimRight(string(message), "\n"),
+					bytes.TrimRight(message, "\n"),
 				),
 			)
 		},

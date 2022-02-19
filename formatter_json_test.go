@@ -26,7 +26,7 @@ func (s *jsonFormatterSuite) TestProducesValidJSON() {
 		{Key: "trace", Value: []byte("\"logwriter_test.go 29\""), Level: 2},
 		{Key: "some_slice", Value: s.marshal([]interface{}{1, true, "test", 1.18}), Level: 2},
 	}
-	b := logw.JSONFormatter("info", 2, tags, time.Now(), time.RFC3339, "test json output")
+	b := logw.JSONFormatter("info", 2, tags, time.Now(), time.RFC3339, []byte("test json output"))
 
 	s.T().Log(string(b))
 

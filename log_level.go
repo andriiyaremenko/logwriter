@@ -34,9 +34,7 @@ var (
 	Error LogLevel = Level(LevelError)
 	// Sets Fatal message level
 	Fatal LogLevel = Level(LevelFatal)
-)
 
-var (
 	logwHeaderLen int = len(logwHeader)
 )
 
@@ -85,7 +83,7 @@ func (t LogLevel) WithMessage(template string, v ...interface{}) string {
 func (t LogLevel) appendTag(tag, value string) LogLevel {
 	return LogLevel(
 		strings.Join(
-			[]string{string(t[:logwHeaderLen]), tag, "\t", value, "\n", string(t[logwHeaderLen:])}, "",
+			[]string{logwHeader, tag, "\t", value, "\n", string(t[logwHeaderLen:])}, "",
 		),
 	)
 }

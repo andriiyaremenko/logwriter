@@ -38,7 +38,7 @@ func BenchmarkLogFormatterWrite(b *testing.B) {
 		tags []logw.Tag,
 		timeStamp time.Time,
 		dateLayout string,
-		message string,
+		message []byte,
 	) []byte {
 		return []byte{}
 	}

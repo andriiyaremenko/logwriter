@@ -20,7 +20,7 @@ type Formatter func(
 	tags []Tag,
 	timeStamp time.Time,
 	dateLayout string,
-	message string,
+	message []byte,
 ) []byte
 
 // JSON message formatter
@@ -32,35 +32,35 @@ func JSONFormatter(
 	tags []Tag,
 	timeStamp time.Time,
 	dateLayout string,
-	message string,
+	message []byte,
 ) []byte {
 	var sb strings.Builder
 
-	sb.WriteString("{")
+	sb.WriteByte('{')
 
 	sb.WriteString("\"levelCode\":")
 	sb.WriteString(strconv.Itoa(levelCode))
-	sb.WriteString(",")
+	sb.WriteByte(',')
 
 	sb.WriteString("\"level\":")
-	sb.WriteString("\"")
+	sb.WriteByte('"')
 	sb.WriteString(level)
-	sb.WriteString("\"")
-	sb.WriteString(",")
+	sb.WriteByte('"')
+	sb.WriteByte(',')
 
 	if dateLayout != NoDate {
 		sb.WriteString("\"date\":")
-		sb.WriteString("\"")
+		sb.WriteByte('"')
 		sb.WriteString(timeStamp.UTC().Format(dateLayout))
-		sb.WriteString("\"")
-		sb.WriteString(",")
+		sb.WriteByte('"')
+		sb.WriteByte(',')
 	}
 
 	sb.WriteString("\"message\":")
-	sb.WriteString("\"")
+	sb.WriteByte('"')
 
-	sb.WriteString(message)
-	sb.WriteString("\"")
+	sb.Write(message)
+	sb.WriteByte('"')
 
 	tagsMap := make(map[string][][]byte)
 	for _, tag := range tags {
@@ -68,17 +68,18 @@ func JSONFormatter(
 	}
 
 	for k, v := range tagsMap {
-		sb.WriteString(",")
-		sb.WriteString("\"")
+		sb.WriteByte(',')
+		sb.WriteByte('"')
 		sb.WriteString(k)
-		sb.WriteString("\"")
-		sb.WriteString(":")
-		sb.WriteString("[")
-		sb.Write(bytes.Join(v, []byte(",")))
-		sb.WriteString("]")
+		sb.WriteByte('"')
+		sb.WriteByte(':')
+		sb.WriteByte('[')
+		sb.Write(bytes.Join(v, []byte{','}))
+		sb.WriteByte(']')
 	}
 
-	sb.WriteString("}\n")
+	sb.WriteByte('}')
+	sb.WriteByte('\n')
 
 	return []byte(sb.String())
 }
@@ -92,7 +93,7 @@ func TextFormatter(
 	tags []Tag,
 	timeStamp time.Time,
 	dateLayout string,
-	message string,
+	message []byte,
 ) []byte {
 	var sb strings.Builder
 	levelColor := color.GetLevelColor(levelCode)
@@ -105,11 +106,11 @@ func TextFormatter(
 	}
 
 	sb.WriteString(color.ColorizeText(levelColor, adjust(level)))
-	sb.WriteString("\t")
+	sb.WriteByte('\t')
 
 	if dateLayout != NoDate {
 		sb.WriteString(color.ColorizeText(color.ANSIColorGray, timeStamp.Format(dateLayout)))
-		sb.WriteString("\t")
+		sb.WriteByte('\t')
 	}
 
 	tagsMap := make(map[string][][]byte)
@@ -119,27 +120,27 @@ func TextFormatter(
 
 	for k, values := range tagsMap {
 		sb.WriteString(k)
-		sb.WriteString(":")
-		sb.WriteString("[")
-		sb.WriteString(string(bytes.Join(values, []byte(","))))
-		sb.WriteString("]")
+		sb.WriteByte(':')
+		sb.WriteByte('[')
+		sb.Write(bytes.Join(values, []byte{','}))
+		sb.WriteByte(']')
 
-		sb.WriteString("\t")
+		sb.WriteByte('\t')
 	}
 
-	sb.WriteString(strings.TrimRight(message, "\n"))
-	sb.WriteString("\n")
+	sb.Write(message)
+	sb.WriteByte('\n')
 
-	message = sb.String()
+	result := sb.String()
 	buf := new(bytes.Buffer)
 	w := tabwriter.NewWriter(buf, 0, 2, 2, ' ', 0)
 
-	if _, err := w.Write([]byte(message)); err != nil {
-		return []byte(message)
+	if _, err := w.Write([]byte(result)); err != nil {
+		return []byte(result)
 	}
 
 	if err := w.Flush(); err != nil {
-		return []byte(message)
+		return []byte(result)
 	}
 
 	return buf.Bytes()
