@@ -2,6 +2,7 @@ package logw
 
 import (
 	"bytes"
+	"encoding/json"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -25,7 +26,7 @@ type Formatter func(
 
 // JSON message formatter
 // Has format of:
-//  { "date": string|optional, "level":string, "levelCode":int, "message":string }
+//  { "date": string|optional, "level": string, "levelCode": int, "message": string|optional }
 func JSONFormatter(
 	level string,
 	levelCode int,
@@ -53,18 +54,24 @@ func JSONFormatter(
 		sb.WriteByte('"')
 		sb.WriteString(timeStamp.UTC().Format(dateLayout))
 		sb.WriteByte('"')
-		sb.WriteByte(',')
 	}
 
-	sb.WriteString("\"message\":")
-	sb.WriteByte('"')
-
-	sb.Write(message)
-	sb.WriteByte('"')
+	if len(message) > 0 {
+		message, _ = json.Marshal(string(message))
+		sb.WriteByte(',')
+		sb.WriteString("\"message\":")
+		sb.Write(message)
+	}
 
 	tagsMap := make(map[string][][]byte)
 	for _, tag := range tags {
-		tagsMap[tag.Key] = append(tagsMap[tag.Key], tag.Value)
+		if tag.Type != "string" {
+			tagsMap[tag.Key] = append(tagsMap[tag.Key], tag.Value)
+			continue
+		}
+
+		v, _ := json.Marshal(string(tag.Value))
+		tagsMap[tag.Key] = append(tagsMap[tag.Key], v)
 	}
 
 	for k, v := range tagsMap {
@@ -115,7 +122,13 @@ func TextFormatter(
 
 	tagsMap := make(map[string][][]byte)
 	for _, tag := range tags {
-		tagsMap[tag.Key] = append(tagsMap[tag.Key], tag.Value)
+		if tag.Type != "string" {
+			tagsMap[tag.Key] = append(tagsMap[tag.Key], tag.Value)
+			continue
+		}
+
+		v := "\"" + string(tag.Value) + "\""
+		tagsMap[tag.Key] = append(tagsMap[tag.Key], []byte(v))
 	}
 
 	for k, values := range tagsMap {

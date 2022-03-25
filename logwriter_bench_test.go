@@ -2,6 +2,7 @@ package logw_test
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 	"time"
@@ -9,23 +10,70 @@ import (
 	logw "github.com/andriiyaremenko/logwriter"
 )
 
-func BenchmarkLogLevelCompositionNoMessage(b *testing.B) {
+func BenchmarkLogLevelCompositionInt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = logw.Info.WithInt("attempt", i)
+	}
+}
+
+func BenchmarkLogLevelCompositionBool(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = logw.Info.WithBool("attempting", true)
+	}
+}
+
+func BenchmarkLogLevelCompositionFloat(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = logw.Info.WithFloat("someFloat", 3.4)
+	}
+}
+
+func BenchmarkLogLevelCompositionString(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = logw.Info.WithString("greeting", "Hello World")
+	}
+}
+
+func BenchmarkLogLevelCompositionTrace(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = logw.Info.WithTrace()
+	}
+}
+
+func BenchmarkLogLevelCompositionError(b *testing.B) {
+	err := errors.New("some error")
+	for i := 0; i < b.N; i++ {
+		_ = logw.Info.Error(err)
+	}
+}
+
+func BenchmarkLogLevelCompositionAllTags(b *testing.B) {
+	err := errors.New("some error")
 	for i := 0; i < b.N; i++ {
 		_ = logw.Info.
 			WithInt("attempt", i).
 			WithBool("attempting", true).
 			WithFloat("someFloat", 3.4).
+			Error(err).
 			WithString("greeting", "Hello World")
 	}
 }
 
-func BenchmarkLogLevelCompositionWithMessage(b *testing.B) {
+func BenchmarkLogLevelCompositionWithFormattedMessage(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = logw.Info.WithMessage("this going to be fun: %d", i)
+	}
+}
+
+func BenchmarkLogLevelCompositionWithAllTagsAndFormattedMessage(b *testing.B) {
+	err := errors.New("some error")
 	for i := 0; i < b.N; i++ {
 		_ = logw.Info.
 			WithInt("attempt", i).
 			WithBool("attempting", true).
 			WithFloat("someFloat", 3.4).
 			WithString("greeting", "Hello World").
+			Error(err).
 			WithMessage("this going to be fun: %d", i)
 	}
 }
@@ -49,59 +97,50 @@ func BenchmarkLogFormatterWrite(b *testing.B) {
 			WithBool("attempting", true).
 			WithFloat("someFloat", 3.4).
 			WithString("greeting", "Hello World").
+			Error(errors.New("some error")).
 			WithMessage("this going to be fun: %d", 1),
 	)
 
 	for i := 0; i < b.N; i++ {
-		if _, err := writer.Write(m); err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write(m)
 	}
 }
 
-func BenchmarkLogWriterJSON(b *testing.B) {
+func BenchmarkLogWriterJSONOnlyMessage(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.JSONLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
-		if _, err := writer.Write([]byte("this going to be fun ")); err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write([]byte("this going to be fun "))
 	}
 }
 
-func BenchmarkLogWriterText(b *testing.B) {
+func BenchmarkLogWriterTextOnlyMessage(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.TextLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
-		if _, err := writer.Write([]byte("this going to be fun")); err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write([]byte("this going to be fun"))
 	}
 }
 
-func BenchmarkLogWriterJSONLevel(b *testing.B) {
+func BenchmarkLogWriterJSONLevelWithFormatedMessage(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.JSONLogWriter(ctx, io.Discard)
 
+	m := logw.Info.WithMessage("this going to be fun: %d", 1)
 	for i := 0; i < b.N; i++ {
-		_, err := writer.Write([]byte(logw.Info.WithMessage("this going to be fun: %d", i)))
-		if err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write([]byte(m))
 	}
 }
 
-func BenchmarkLogWriterTextLevel(b *testing.B) {
+func BenchmarkLogWriterTextLevelWithFormattedMessage(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.TextLogWriter(ctx, io.Discard)
 
+	m := logw.Info.WithMessage("this going to be fun: %d", 1)
 	for i := 0; i < b.N; i++ {
-		_, err := writer.Write([]byte(logw.Info.WithMessage("this going to be fun: %d", i)))
-		if err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write([]byte(m))
 	}
 }
 
@@ -113,10 +152,7 @@ func BenchmarkLogWriterJSONContextTags(b *testing.B) {
 	writer := logw.JSONLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
-		_, err := writer.Write([]byte("this going to be fun "))
-		if err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write([]byte("this going to be fun "))
 	}
 }
 
@@ -128,52 +164,38 @@ func BenchmarkLogWriterTextContextTags(b *testing.B) {
 	writer := logw.TextLogWriter(ctx, io.Discard)
 
 	for i := 0; i < b.N; i++ {
-		_, err := writer.Write([]byte("this going to be fun "))
-		if err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write([]byte("this going to be fun "))
 	}
 }
 
-func BenchmarkLogWriterJSONInPlaceTags(b *testing.B) {
+func BenchmarkLogWriterJSONAllInPlaceTags(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.JSONLogWriter(ctx, io.Discard)
-
+	m := logw.Info.
+		WithInt("attempt", 1).
+		WithBool("attempting", true).
+		WithFloat("someFloat", 3.4).
+		WithString("greeting", "Hello World").
+		Error(errors.New("some error")).
+		WithMessage("this going to be fun: %d", 1)
 	for i := 0; i < b.N; i++ {
-		_, err := writer.Write(
-			[]byte(
-				logw.Info.
-					WithInt("attempt", i).
-					WithBool("attempting", true).
-					WithFloat("someFloat", 3.4).
-					WithString("greeting", "Hello World").
-					WithMessage("this going to be fun: %d", i),
-			),
-		)
-		if err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write([]byte(m))
 	}
 }
 
-func BenchmarkLogWriterTextInPlaceTags(b *testing.B) {
+func BenchmarkLogWriterTextAllInPlaceTags(b *testing.B) {
 	ctx := context.TODO()
 	writer := logw.TextLogWriter(ctx, io.Discard)
-
+	m :=
+		logw.Info.
+			WithInt("attempt", 1).
+			WithBool("attempting", true).
+			WithFloat("someFloat", 3.4).
+			WithString("greeting", "Hello World").
+			Error(errors.New("some error")).
+			WithMessage("this going to be fun: %d", 1)
 	for i := 0; i < b.N; i++ {
-		_, err := writer.Write(
-			[]byte(
-				logw.Info.
-					WithInt("attempt", i).
-					WithBool("attempting", true).
-					WithFloat("someFloat", 3.4).
-					WithString("greeting", "Hello World").
-					WithMessage("this going to be fun: %d", i),
-			),
-		)
-		if err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write([]byte(m))
 	}
 }
 
@@ -184,20 +206,15 @@ func BenchmarkLogWriterJSONAllTags(b *testing.B) {
 	logw.AppendInfo(ctx, "tag3", "Hello World")
 	writer := logw.JSONLogWriter(ctx, io.Discard)
 
+	m := logw.Info.
+		WithInt("attempt", 1).
+		WithBool("attempting", true).
+		WithFloat("someFloat", 3.4).
+		WithString("greeting", "Hello World").
+		Error(errors.New("some error")).
+		WithMessage("this going to be fun: %d", 1)
 	for i := 0; i < b.N; i++ {
-		_, err := writer.Write(
-			[]byte(
-				logw.Info.
-					WithInt("attempt", i).
-					WithBool("attempting", true).
-					WithFloat("someFloat", 3.4).
-					WithString("greeting", "Hello World").
-					WithMessage("this going to be fun: %d", i),
-			),
-		)
-		if err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write([]byte(m))
 	}
 }
 
@@ -206,21 +223,16 @@ func BenchmarkLogWriterTextAllTags(b *testing.B) {
 	logw.AppendInfo(ctx, "tag1", true)
 	logw.AppendInfo(ctx, "tag2", 42)
 	logw.AppendInfo(ctx, "tag3", "Hello World")
-
 	writer := logw.TextLogWriter(ctx, io.Discard)
+
+	m := logw.Info.
+		WithInt("attempt", 1).
+		WithBool("attempting", true).
+		WithFloat("someFloat", 3.4).
+		WithString("greeting", "Hello World").
+		Error(errors.New("some error")).
+		WithMessage("this going to be fun: %d", 1)
 	for i := 0; i < b.N; i++ {
-		_, err := writer.Write(
-			[]byte(
-				logw.Info.
-					WithInt("attempt", i).
-					WithBool("attempting", true).
-					WithFloat("someFloat", 3.4).
-					WithString("greeting", "Hello World").
-					WithMessage("this going to be fun: %d", i),
-			),
-		)
-		if err != nil {
-			b.Fatal(err)
-		}
+		_, _ = writer.Write([]byte(m))
 	}
 }

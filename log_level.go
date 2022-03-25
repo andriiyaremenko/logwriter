@@ -41,7 +41,10 @@ var (
 // Sets message level
 func Level(level int) LogLevel {
 	return LogLevel(
-		strings.Join([]string{logwHeader, "_level", "\t", strconv.Itoa(level), "\n", logwHeader}, ""),
+		strings.Join(
+			[]string{logwHeader, "_level", "\t", strconv.Itoa(level), "\t", "_", "\n", logwHeader},
+			"",
+		),
 	)
 }
 
@@ -51,22 +54,24 @@ type LogLevel string
 
 // Adds in-place tag with string value
 func (t LogLevel) WithString(tag string, value string) LogLevel {
-	return t.appendTag(tag, "\""+value+"\"")
+	value = strings.ReplaceAll(value, "\t", " ")
+	value = strings.ReplaceAll(value, "\n", " ")
+	return t.appendTag(tag, value, "string")
 }
 
 // Adds in-place tag with int value
 func (t LogLevel) WithInt(tag string, value int) LogLevel {
-	return t.appendTag(tag, strconv.Itoa(value))
+	return t.appendTag(tag, strconv.Itoa(value), "int")
 }
 
 // Adds in-place tag with float value
 func (t LogLevel) WithFloat(tag string, value float64) LogLevel {
-	return t.appendTag(tag, strings.TrimRight(strconv.FormatFloat(value, 'f', 6, 64), "0"))
+	return t.appendTag(tag, strconv.FormatFloat(value, 'f', -1, 64), "float64")
 }
 
 // Adds in-place tag with bool value
 func (t LogLevel) WithBool(tag string, value bool) LogLevel {
-	return t.appendTag(tag, strconv.FormatBool(value))
+	return t.appendTag(tag, strconv.FormatBool(value), "bool")
 }
 
 // Adds in-place trace tag with file name and row number
@@ -76,14 +81,20 @@ func (t LogLevel) WithTrace() LogLevel {
 }
 
 // Appends log message
-func (t LogLevel) WithMessage(template string, v ...interface{}) string {
+func (t LogLevel) WithMessage(template string, v ...any) string {
 	return strings.Join([]string{string(t), fmt.Sprintf(template, v...)}, "")
 }
 
-func (t LogLevel) appendTag(tag, value string) LogLevel {
+// Adds in-place error tag
+// Tag key: "error"
+func (t LogLevel) Error(err error) LogLevel {
+	return t.WithString("error", err.Error())
+}
+
+func (t LogLevel) appendTag(tag, value, valueType string) LogLevel {
 	return LogLevel(
 		strings.Join(
-			[]string{logwHeader, tag, "\t", value, "\n", string(t[logwHeaderLen:])}, "",
+			[]string{logwHeader, tag, "\t", value, "\t", valueType, "\n", string(t[logwHeaderLen:])}, "",
 		),
 	)
 }

@@ -20,14 +20,14 @@ func parseLog(m []byte) (int, []byte, []Tag) {
 	message = strings.TrimLeft(message, " ")
 
 	for _, row := range strings.Split(sections[1], "\n") {
-		tagSection := strings.SplitN(row, "\t", 2)
-		if len(tagSection) != 2 {
+		tagSection := strings.SplitN(row, "\t", 3)
+		if len(tagSection) != 3 {
 			continue
 		}
 
 		var err error
 
-		if tagSection[0] == "_level" {
+		if tagSection[0] == "_level" && tagSection[2] == "_" {
 			level, err = strconv.Atoi(string(tagSection[1]))
 			if err != nil {
 				level = LevelInfo
@@ -38,6 +38,7 @@ func parseLog(m []byte) (int, []byte, []Tag) {
 
 		tags = append(tags, Tag{
 			Key:   tagSection[0],
+			Type:  tagSection[2],
 			Value: json.RawMessage(tagSection[1]),
 		})
 	}

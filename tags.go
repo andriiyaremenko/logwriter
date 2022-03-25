@@ -10,8 +10,9 @@ import (
 
 type Tag struct {
 	Key   string
-	Level int
+	Type  string
 	Value json.RawMessage
+	Level int
 }
 
 type key int
@@ -19,32 +20,37 @@ type key int
 var logwriterKey key
 
 // Addends Tag to context, that will be logged with Debug level
-func AppendDebug(ctx context.Context, tag string, value interface{}) context.Context {
+func AppendDebug(ctx context.Context, tag string, value any) context.Context {
 	return AppendTag(ctx, LevelDebug, tag, value)
 }
 
 // Addends Tag to context, that will be logged with Info level
-func AppendInfo(ctx context.Context, tag string, value interface{}) context.Context {
+func AppendInfo(ctx context.Context, tag string, value any) context.Context {
 	return AppendTag(ctx, LevelInfo, tag, value)
 }
 
 // Addends Tag to context, that will be logged with Warn level
-func AppendWarn(ctx context.Context, tag string, value interface{}) context.Context {
+func AppendWarn(ctx context.Context, tag string, value any) context.Context {
 	return AppendTag(ctx, LevelWarn, tag, value)
 }
 
 // Addends Tag to context, that will be logged with Error level
-func AppendError(ctx context.Context, tag string, value interface{}) context.Context {
+func AppendError(ctx context.Context, tag string, value any) context.Context {
 	return AppendTag(ctx, LevelError, tag, value)
 }
 
 // Addends Tag to context, that will be logged with Fatal level
-func AppendFatal(ctx context.Context, tag string, value interface{}) context.Context {
+func AppendFatal(ctx context.Context, tag string, value any) context.Context {
 	return AppendTag(ctx, LevelFatal, tag, value)
 }
 
 // Addends Tag to context, that will be logged with provided level
-func AppendTag(ctx context.Context, level int, tag string, value interface{}) context.Context {
+func AppendTag(ctx context.Context, level int, tag string, value any) context.Context {
+	err, ok := value.(error)
+	if ok {
+		value = err.Error()
+	}
+
 	b, err := json.Marshal(value)
 	if err != nil {
 		fmt.Println(color.ColorizeText(color.ANSIColorRed, fmt.Sprintf("cannot append tag %q value: %s", tag, err)))
@@ -54,6 +60,7 @@ func AppendTag(ctx context.Context, level int, tag string, value interface{}) co
 
 	newTag := Tag{
 		Key:   tag,
+		Type:  "json",
 		Value: json.RawMessage(b),
 		Level: level,
 	}
@@ -90,7 +97,7 @@ func getTags(ctx context.Context, level int) []Tag {
 	return result
 }
 
-func hasSameValue(a, b interface{}) bool {
+func hasSameValue(a, b any) bool {
 	aValue, ok := a.(json.RawMessage)
 	if !ok {
 		return false
