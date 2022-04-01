@@ -53,7 +53,7 @@ func LogWriter(ctx context.Context, w io.Writer, conf LogWriterOption) io.Writer
 
 			return w.Write(
 				formatter(
-					getLevelText(level),
+					FormatLogLevel(level),
 					level,
 					tags,
 					now,

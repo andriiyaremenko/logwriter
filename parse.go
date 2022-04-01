@@ -6,6 +6,25 @@ import (
 	"strings"
 )
 
+func FormatLogLevel(level int) string {
+	switch level {
+	case LevelDebug:
+		return "debug"
+	case LevelInfo:
+		return "info"
+	case LevelWarn:
+		return "warn"
+	case LevelError:
+		return "error"
+	}
+
+	if level < LevelDebug {
+		return "trace"
+	}
+
+	return "fatal"
+}
+
 func parseLog(m []byte) (int, []byte, []Tag) {
 	tags := []Tag{}
 	level := LevelInfo
@@ -49,23 +68,4 @@ func parseLog(m []byte) (int, []byte, []Tag) {
 	}
 
 	return level, []byte(message), tags
-}
-
-func getLevelText(level int) string {
-	switch level {
-	case LevelDebug:
-		return "debug"
-	case LevelInfo:
-		return "info"
-	case LevelWarn:
-		return "warn"
-	case LevelError:
-		return "error"
-	}
-
-	if level < LevelDebug {
-		return "trace"
-	}
-
-	return "fatal"
 }
